@@ -122,6 +122,7 @@ class ClioneApiController {
      * Instantiate a GitHub client, authenticated as an installation of a
      * GitHub App, to run API operations.
      */
+    @Suppress("DEPRECATION")
     private fun authenticateInstallation(json: JsonNode, appClient: GitHub): GitHub {
         val installationId: Long = json["installation"]["id"].asLong()
         val installation: GHAppInstallationToken = appClient.app.getInstallationById(installationId)

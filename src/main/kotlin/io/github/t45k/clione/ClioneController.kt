@@ -2,11 +2,9 @@ package io.github.t45k.clione
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.apache.commons.codec.binary.Hex
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.util.io.pem.PemReader
 import org.kohsuke.github.GHAppInstallationToken
 import org.kohsuke.github.GitHub
 import org.kohsuke.github.GitHubBuilder
@@ -17,16 +15,12 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
-import java.io.StringReader
-import java.security.KeyFactory
+import util.DigestUtil
 import java.security.Security
 import java.security.interfaces.RSAPrivateKey
-import java.security.spec.PKCS8EncodedKeySpec
 import java.util.Calendar
 import java.util.Date
 import java.util.ResourceBundle
-import javax.crypto.Mac
-import javax.crypto.spec.SecretKeySpec
 import javax.servlet.http.HttpServletRequest
 
 
@@ -38,35 +32,41 @@ class ClioneApiController {
     private val githubWebhookSecret: String
 
     init {
-        val bundle = ResourceBundle.getBundle("resource") ?: throw NoPropertyFileExistsException()
         Security.addProvider(BouncyCastleProvider())
 
-        githubPrivateKey = PemReader(StringReader(bundle.getString("GITHUB_PRIVATE_KEY")))
-            .readPemObject()
-            .let { PKCS8EncodedKeySpec(it.content) }
-            .let { KeyFactory.getInstance("RSA").generatePrivate(it) as RSAPrivateKey }
+        val bundle: ResourceBundle = ResourceBundle.getBundle("resource") ?: throw NoPropertyFileExistsException()
+        githubPrivateKey = DigestUtil.getRSAPrivateKeyFromPEMFileContents(bundle.getString("GITHUB_PRIVATE_KEY"))
         githubAppIdentifier = bundle.getString("GITHUB_APP_IDENTIFIER")
         githubWebhookSecret = bundle.getString("GITHUB_WEBHOOK_SECRET")
+    }
+
+    companion object {
+        const val WEBHOOK_SIGNATURE: String = "x-hub-signature"
+        const val WEBHOOK_EVENT: String = "x-github-event"
     }
 
     @Autowired
     private lateinit var request: HttpServletRequest
 
     @GetMapping("")
-    fun home() {
-    }
+    fun home(): String = "hello"
 
     @PostMapping("/event_handler")
-    fun postEventHandler(@RequestBody rawBody: String) {
+    fun postEventHandler(@RequestBody rawRequestBody: String) {
         logger.info("Event was received")
-        val parsedBody: Map<String, Any?> = ObjectMapper().readValue(rawBody, object : TypeReference<Map<String, Any?>>() {})
-        if (!verifyWebhookSignature(rawBody, parsedBody)) {
+        val json: JsonNode = ObjectMapper().readTree(rawRequestBody)
+        if (!verifyWebhookSignature(rawRequestBody)) {
             return
         }
+        logger.info("---- received event ${request.getHeader(WEBHOOK_EVENT)}")
+        logger.info("---- action ${json["action"].asText()}")
 
-        val gitHub = authenticateApp()
-        val tmp = authenticateInstallation(parsedBody, gitHub)
-        tmp.getRepository((parsedBody["repository"] as Map<*, *>)["full_name"] as String).getIssue((parsedBody["issue"] as Map<*, *>)["number"] as Int).comment("hogehoge")
+        val client: GitHub = authenticateApp()
+            .run { authenticateInstallation(json, this) }
+        client
+            .getRepository(json["repository"]["full_name"].asText())
+            .getIssue(json["issue"]["number"].asInt())
+            .comment("hello")
     }
 
     /**
@@ -83,66 +83,60 @@ class ClioneApiController {
      * See https://developer.github.com/webhooks/securing/ for details.
      *
      * @param rawBody raw request body
-     * @param parsedBody request body parsed as key-value object(json)
      *
      * @return verification is OK or NO
      */
-    private fun verifyWebhookSignature(rawBody: String, parsedBody: Map<String, Any?>): Boolean {
-        val requestHeader: String = request.getHeader("x-hub-signature")
-        val (method: String, requestDigest: String) = requestHeader.split("=")
-        val myDigest: String = digest("hmac$method", rawBody)
-        if (requestDigest != myDigest) {
+    private fun verifyWebhookSignature(rawBody: String): Boolean {
+        val requestHeader: String = request.getHeader(WEBHOOK_SIGNATURE)
+        val (algorithm: String, requestDigest: String) = requestHeader.split("=")
+        val myDigest: String = DigestUtil.digest("hmac$algorithm", githubWebhookSecret, rawBody)
+        return if (requestDigest == myDigest) {
+            true
+        } else {
             logger.error("Unauthorized Access")
-            return false
+            false
         }
-
-        if (parsedBody["action"] == null) {
-            logger.warn("No action occurred")
-            return false
-        }
-
-        logger.info("---- received event ${request.getHeader("x-github-event")}")
-        logger.info("---- action ${parsedBody["action"]}")
-        return true
     }
 
     /**
-     * Perform HMAC SHA1 HEX Digest
-     *
-     * @param method hashing algorithm. Ordinarily, only SHA1 is given.
+     * Instantiate a GitHub client authenticated as a GitHub App.
+     * GitHub App authentication requires that you construct a
+     * JWT (https://jwt.io/introduction/) signed with the app's private key,
+     * so GitHub can be sure that it came from the app and was not altered by
+     * a malicious third party.
      */
-    private fun digest(method: String, rawBody: String): String =
-        Mac.getInstance(method)
-            .also {
-                val secretKeySpec = SecretKeySpec(githubWebhookSecret.toByteArray(), method)
-                it.init(secretKeySpec)
-            }
-            .doFinal(rawBody.toByteArray())
-            .let(Hex::encodeHex)
-            .let { String(it) }
-
     private fun authenticateApp(): GitHub {
-        val now = Date()
-        val expired: Date = Calendar.getInstance()
-            .apply { this.time = now }
-            .apply { this.add(Calendar.MINUTE, 10) }
-            .time
+        val nowTime = Date()
+        val expiredTime: Date = nowTime.minutesAfter(10)
 
         val jwt: String = JWT.create()
-            .withIssuedAt(now)
-            .withExpiresAt(expired)
+            .withIssuedAt(nowTime)
+            .withExpiresAt(expiredTime)
             .withIssuer(githubAppIdentifier)
-            .sign(Algorithm.RSA256(githubPrivateKey))
+            .sign(Algorithm.RSA256(null, githubPrivateKey))
+
         return GitHubBuilder().withJwtToken(jwt).build()
     }
 
-    private fun authenticateInstallation(parsedBody: Map<String, Any?>, appClient: GitHub): GitHub {
-        val installationId: Long = ((parsedBody["installation"] as Map<*, *>)["id"] as Int).toLong()
+    /**
+     * Instantiate a GitHub client, authenticated as an installation of a
+     * GitHub App, to run API operations.
+     */
+    private fun authenticateInstallation(json: JsonNode, appClient: GitHub): GitHub {
+        val installationId: Long = json["installation"]["id"].asLong()
         val installation: GHAppInstallationToken = appClient.app.getInstallationById(installationId)
             .createToken()
             .create()
         return GitHubBuilder().withAppInstallationToken(installation.token).build()
     }
+
+    private fun Date.minutesAfter(minutes: Int): Date =
+        Calendar.getInstance()
+            .also {
+                it.time = this
+                it.add(Calendar.MINUTE, minutes)
+            }
+            .time
 }
 
 class NoPropertyFileExistsException : RuntimeException()

@@ -23,7 +23,6 @@ import java.util.Date
 import java.util.ResourceBundle
 import javax.servlet.http.HttpServletRequest
 
-
 @RestController
 class ClioneApiController {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)

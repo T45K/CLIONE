@@ -60,7 +60,7 @@ class ClioneApiController {
         val event: String = request.getHeader(WEBHOOK_EVENT)
         val json: JsonNode = ObjectMapper().readTree(rawRequestBody)
         val action: String = json["action"].asText()
-        logger.info("---- received event $event:String")
+        logger.info("---- received event $event:String from ${json["repository"]["full_name"].asText()}")
         logger.info("---- action $action")
         if (!isPullRequestOpen(event, action)) {
             return

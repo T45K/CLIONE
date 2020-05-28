@@ -1,4 +1,4 @@
-package io.github.t45k.clione
+package io.github.t45k.clione.controller
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm

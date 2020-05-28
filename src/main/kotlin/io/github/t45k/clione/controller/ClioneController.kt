@@ -113,17 +113,18 @@ class ClioneApiController {
      * so GitHub can be sure that it came from the app and was not altered by
      * a malicious third party.
      */
-    private fun authenticateApp(): GitHub {
+    private fun authenticateApp(): GitHub =
+        GitHubBuilder().withJwtToken(createJWT()).build()
+
+    private fun createJWT(): String {
         val nowTime = Date()
         val expiredTime: Date = nowTime.minutesAfter(10)
 
-        val jwt: String = JWT.create()
+        return JWT.create()
             .withIssuedAt(nowTime)
             .withExpiresAt(expiredTime)
             .withIssuer(githubAppIdentifier)
             .sign(Algorithm.RSA256(null, githubPrivateKey))
-
-        return GitHubBuilder().withJwtToken(jwt).build()
     }
 
     /**

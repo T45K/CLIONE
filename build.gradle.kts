@@ -25,7 +25,7 @@ dependencies {
     implementation("com.auth0:java-jwt:3.10.2")
     implementation("org.kohsuke:github-api:1.111")
     implementation("org.bouncycastle:bcprov-jdk15on:1.65")
-    implementation("org.eclipse.jdt:org.eclipse.jdt.core:3.21.0")
+    implementation("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }

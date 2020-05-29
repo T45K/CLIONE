@@ -47,14 +47,16 @@ class ClioneApiController {
         if (!isPullRequestOpen(request.getHeader(WEBHOOK_EVENT), json["action"].asText())) {
             return
         }
-        val repositoryFullName = json["repository"]["full_name"].asText()
 
+        val repositoryFullName = json["repository"]["full_name"].asText()
         logger.info("---- received pull request open from $repositoryFullName")
 
+        val pullRequestNumber: Int = json["number"].asInt()
         val (pullRequest: PullRequestController, token: String) = GitHubAuthenticator.authenticate(json)
-        val git: GitController = GitController.clone(repositoryFullName, token)
+        val git: GitController = GitController.clone(repositoryFullName, token, pullRequestNumber)
 
         pullRequest.comment("hello")
+        git.deleteRepo()
     }
 
     private fun isPullRequestOpen(event: String, action: String): Boolean =

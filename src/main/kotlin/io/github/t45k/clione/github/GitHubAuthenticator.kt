@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.JsonNode
 import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.exception.NoPropertyFileExistsException
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.kohsuke.github.GHAppInstallationToken
 import org.kohsuke.github.GitHub
 import org.kohsuke.github.GitHubBuilder
 import util.DigestUtil
@@ -55,14 +54,6 @@ class GitHubAuthenticator {
                 .withIssuer(githubAppIdentifier)
                 .sign(Algorithm.RSA256(null, githubPrivateKey))
             return GitHubBuilder().withJwtToken(jwt).build()
-        }
-
-        @Suppress("DEPRECATION")
-        private fun authenticateInstallation(appClient: GitHub, installationId: Long): GitHub {
-            val installation: GHAppInstallationToken = appClient.app.getInstallationById(installationId)
-                .createToken()
-                .create()
-            return GitHubBuilder().withAppInstallationToken(installation.token).build()
         }
 
         /**

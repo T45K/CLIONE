@@ -1,13 +1,9 @@
 package io.github.t45k.clione.controller
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.kohsuke.github.GHAppInstallationToken
-import org.kohsuke.github.GitHub
-import org.kohsuke.github.GitHubBuilder
+import io.github.t45k.clione.exception.NoPropertyFileExistsException
+import io.github.t45k.clione.github.GitHubAuthenticator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
@@ -16,26 +12,16 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import util.DigestUtil
-import java.security.Security
-import java.security.interfaces.RSAPrivateKey
-import java.util.Calendar
-import java.util.Date
 import java.util.ResourceBundle
 import javax.servlet.http.HttpServletRequest
 
 @RestController
 class ClioneApiController {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
-    private val githubPrivateKey: RSAPrivateKey
-    private val githubAppIdentifier: String
     private val githubWebhookSecret: String
 
     init {
-        Security.addProvider(BouncyCastleProvider())
-
-        val bundle: ResourceBundle = ResourceBundle.getBundle("resource") ?: throw NoPropertyFileExistsException()
-        githubPrivateKey = DigestUtil.getRSAPrivateKeyFromPEMFileContents(bundle.getString("GITHUB_PRIVATE_KEY"))
-        githubAppIdentifier = bundle.getString("GITHUB_APP_IDENTIFIER")
+        val bundle: ResourceBundle = ResourceBundle.getBundle("verify") ?: throw NoPropertyFileExistsException()
         githubWebhookSecret = bundle.getString("GITHUB_WEBHOOK_SECRET")
     }
 
@@ -57,21 +43,20 @@ class ClioneApiController {
             return
         }
 
-        val event: String = request.getHeader(WEBHOOK_EVENT)
         val json: JsonNode = ObjectMapper().readTree(rawRequestBody)
-        val action: String = json["action"].asText()
-        logger.info("---- received event $event:String from ${json["repository"]["full_name"].asText()}")
-        logger.info("---- action $action")
-        if (!isPullRequestOpen(event, action)) {
+        if (!isPullRequestOpen(request.getHeader(WEBHOOK_EVENT), json["action"].asText())) {
             return
         }
 
-        val client: GitHub = authenticateApp()
-            .run { authenticateInstallation(json, this) }
-        client
-            .getRepository(json["repository"]["full_name"].asText())
-            .getIssue(json["number"].asInt())
-            .comment("hello")
+        val repositoryFullName = json["repository"]["full_name"].asText()
+        logger.info("---- received pull request open from $repositoryFullName")
+
+        val pullRequestNumber: Int = json["number"].asInt()
+        val (pullRequest: PullRequestController, token: String) = GitHubAuthenticator.authenticate(json)
+        val git: GitController = GitController.clone(repositoryFullName, token, pullRequestNumber)
+
+        pullRequest.comment("hello")
+        git.deleteRepo()
     }
 
     private fun isPullRequestOpen(event: String, action: String): Boolean =
@@ -105,47 +90,4 @@ class ClioneApiController {
             false
         }
     }
-
-    /**
-     * Instantiate a GitHub client authenticated as a GitHub App.
-     * GitHub App authentication requires that you construct a
-     * JWT (https://jwt.io/introduction/) signed with the app's private key,
-     * so GitHub can be sure that it came from the app and was not altered by
-     * a malicious third party.
-     */
-    private fun authenticateApp(): GitHub {
-        val nowTime = Date()
-        val expiredTime: Date = nowTime.minutesAfter(10)
-
-        val jwt: String = JWT.create()
-            .withIssuedAt(nowTime)
-            .withExpiresAt(expiredTime)
-            .withIssuer(githubAppIdentifier)
-            .sign(Algorithm.RSA256(null, githubPrivateKey))
-
-        return GitHubBuilder().withJwtToken(jwt).build()
-    }
-
-    /**
-     * Instantiate a GitHub client, authenticated as an installation of a
-     * GitHub App, to run API operations.
-     */
-    @Suppress("DEPRECATION")
-    private fun authenticateInstallation(json: JsonNode, appClient: GitHub): GitHub {
-        val installationId: Long = json["installation"]["id"].asLong()
-        val installation: GHAppInstallationToken = appClient.app.getInstallationById(installationId)
-            .createToken()
-            .create()
-        return GitHubBuilder().withAppInstallationToken(installation.token).build()
-    }
-
-    private fun Date.minutesAfter(minutes: Int): Date =
-        Calendar.getInstance()
-            .also {
-                it.time = this
-                it.add(Calendar.MINUTE, minutes)
-            }
-            .time
 }
-
-class NoPropertyFileExistsException : RuntimeException()

@@ -31,4 +31,5 @@ out/
 ### VS Code ###
 .vscode/
 
-./src/main/resources/resource.properties
+./src/main/resources/github.properties
+./src/main/resources/verify.properties

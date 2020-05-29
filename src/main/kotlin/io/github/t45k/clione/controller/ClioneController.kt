@@ -139,14 +139,3 @@ class ClioneApiController {
             .create()
         return GitHubBuilder().withAppInstallationToken(installation.token).build()
     }
-
-    private fun Date.minutesAfter(minutes: Int): Date =
-        Calendar.getInstance()
-            .also {
-                it.time = this
-                it.add(Calendar.MINUTE, minutes)
-            }
-            .time
-}
-
-class NoPropertyFileExistsException : RuntimeException()

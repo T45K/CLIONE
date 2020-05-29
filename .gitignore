@@ -32,4 +32,4 @@ out/
 .vscode/
 
 ./src/main/resources/github.properties
-./sec/main/resources/verify.properties
+./src/main/resources/verify.properties

@@ -30,11 +30,15 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }
+    testImplementation("org.jetbrains.kotlin:kotlin-test")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
 }
 
+/*
 tasks.withType<Test> {
     useJUnitPlatform()
 }
+*/
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {

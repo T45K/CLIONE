@@ -10,4 +10,28 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
     fun comment(message: String) {
         pullRequest.comment(message)
     }
+
+    /**
+     * Return base commit hash and head of the branch of the pull request.
+     */
+    fun getComparisonCommits(): Pair<String, String> = pullRequest.base.sha to pullRequest.head.sha
+
+    /**
+     * Return GitHub Url of the pull request file base
+     * example: https://github.com/T45k/Clione/blob/master/
+     */
+    fun getFileUrlBase(): String =
+        "https://github.com/${pullRequest.head.repository.fullName}/blob/${getBranchName()}"
+
+    /**
+     * Whether the pull request was opened from forked repository
+     */
+    private fun isPullRequestWithFork(): Boolean = pullRequest.head.label.contains(":")
+
+    private fun getBranchName(): String =
+        if (isPullRequestWithFork()) {
+            pullRequest.head.label.substringAfter(":")
+        } else {
+            pullRequest.head.label
+        }
 }

@@ -5,7 +5,9 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class PullRequestController(private val pullRequest: GHPullRequest) {
-    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    }
 
     fun comment(message: String) {
         pullRequest.comment(message)
@@ -34,4 +36,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
         } else {
             pullRequest.head.label
         }
+
+    fun getRepositoryFullName(): String = pullRequest.repository.fullName
+    fun getNumber(): Int = pullRequest.number
 }

@@ -10,3 +10,5 @@ fun deleteRecursive(path: Path) {
     }
     Files.delete(path)
 }
+
+fun String.toPath(): Path = Path.of(this)

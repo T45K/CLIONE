@@ -24,11 +24,9 @@ import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import util.deleteRecursive
+import util.toPath
 import java.nio.file.Path
 
-/**
- * Note: Any Variable named "fileName" in this class is string of relative path from git repository
- */
 class GitController(private val git: Git) {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -48,13 +46,15 @@ class GitController(private val git: Git) {
                 .blockingSingle()
     }
 
+    private val repositoryPath: Path = git.repository.directory.parentFile.absoluteFile.toPath()
+
     fun deleteRepo() =
-        Observable.just(git.repository.directory.parentFile.absoluteFile.toPath())
+        Observable.just(repositoryPath)
             .doOnSubscribe { logger.info("[START]\tdelete ${git.repository.directory.parentFile}") }
             .doOnComplete { logger.info("[END]\tdelete ${git.repository.directory.parentFile}") }
             .subscribe(::deleteRecursive)!!
 
-    fun getProjectPath(): Path = git.repository.directory.parentFile.absoluteFile.toPath()
+    fun getProjectPath(): Path = repositoryPath
 
     /**
      * Same operation as "git checkout hash"
@@ -70,23 +70,25 @@ class GitController(private val git: Git) {
         val newFileNames: MutableSet<String> = mutableSetOf()
         executeDiffCommand(oldCommitHash, newCommitHash)
             .forEach {
-                it.oldPath?.apply { oldFileNames.add(this) }
-                it.newPath?.apply { newFileNames.add(this) }
+                it.oldPath?.apply { oldFileNames.add(completePath(this)) }
+                it.newPath?.apply { newFileNames.add(completePath(this)) }
             }
 
         return oldFileNames to newFileNames
     }
 
-    fun calcFileDiff(fileName: String, oldCommitHash: String, newCommitHash: String): FileDiff {
-        val diffEntries: List<DiffEntry> = executeDiffCommand(oldCommitHash, newCommitHash).filter { it.oldPath == fileName }
-        if (diffEntries.isEmpty()) {
-            // All clones in this file are STABLE
-            return FileDiff(FileChangeType.STABLE, emptyList(), fileName)
-        }
+    /**
+     * Note: HEAD is old revision
+     * This method must be called about a changed file
+     */
+    fun calcFileDiff(filePath: String, oldCommitHash: String, newCommitHash: String): FileDiff {
+        val fileName: String = repositoryPath.relativize(filePath.toPath()).toString()
+        val entry: DiffEntry = executeDiffCommand(oldCommitHash, newCommitHash).first { it.oldPath == fileName }
 
-        val entry: DiffEntry = diffEntries.first()
         if (entry.changeType == DiffEntry.ChangeType.DELETE) {
             return FileDiff(FileChangeType.DELETE, emptyList(), "")
+        } else if (entry.changeType == DiffEntry.ChangeType.ADD) {
+            return FileDiff(FileChangeType.ADD, emptyList(), "")
         }
 
         val oldRawText: RawText = readBlob(entry.oldId)
@@ -94,8 +96,10 @@ class GitController(private val git: Git) {
         val editList: EditList = DiffAlgorithm.getAlgorithm(DiffAlgorithm.SupportedAlgorithm.HISTOGRAM)
             .diff(RawTextComparator.DEFAULT, oldRawText, newRawText)
         val size: Int = String(oldRawText.rawContent).split("\n").size
-        return FileDiff(FileChangeType.MODIFY, mapLine(editList, size), entry.newPath)
+        return FileDiff(FileChangeType.MODIFY, mapLine(editList, size), completePath(entry.newPath))
     }
+
+    private fun completePath(relativePath: String): String = repositoryPath.resolve(relativePath).toString()
 
     /**
      * Mapping line number of the file of old revision to new one

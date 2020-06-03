@@ -4,7 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.databind.JsonNode
 import io.github.t45k.clione.controller.PullRequestController
-import io.github.t45k.clione.exception.NoPropertyFileExistsException
+import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.kohsuke.github.GitHub
 import org.kohsuke.github.GitHubBuilder

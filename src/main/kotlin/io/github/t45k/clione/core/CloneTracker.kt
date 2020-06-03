@@ -15,16 +15,9 @@ class CloneTracker(private val gitController: GitController, private val pullReq
     }
 
     private val sourceCodePath: Path = gitController.getProjectPath().resolve(config.infix)
-    private val cloneDetectionResultPath: Path = sourceCodePath.parent
-        .resolve("${sourceCodePath.fileName}_blocks-blind-clones")
-        .resolve("${sourceCodePath.fileName}_blocks-blind-clones-0.30.xm")
-    private val cloneCandidateDataPath: Path = sourceCodePath.parent
-        .resolve("${sourceCodePath.fileName}_blocks.xml")
 
     fun track() {
         logger.info("[START]\tClone Tracking on ${pullRequestController.getRepositoryFullName()}/${pullRequestController.getNumber()}")
         val cloneDetectorController: CloneDetectorController = NiCadController(sourceCodePath, config)
-
-
     }
 }

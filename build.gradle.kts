@@ -13,6 +13,7 @@ java.sourceCompatibility = JavaVersion.VERSION_11
 
 repositories {
     mavenCentral()
+    maven("https://jitpack.io")
 }
 
 dependencies {
@@ -27,6 +28,7 @@ dependencies {
     implementation("org.bouncycastle:bcprov-jdk15on:1.65")
     implementation("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
     implementation("io.reactivex.rxjava3:rxkotlin:3.0.0")
+    implementation("com.github.kusumotolab:sdl4j:0.4.0")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }

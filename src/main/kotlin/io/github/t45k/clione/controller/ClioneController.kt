@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.view.RedirectView
 import util.DigestUtil
 import java.util.ResourceBundle
 import javax.servlet.http.HttpServletRequest
@@ -34,7 +35,7 @@ class ClioneApiController {
     private lateinit var request: HttpServletRequest
 
     @GetMapping("")
-    fun home(): String = "hello"
+    fun home(): RedirectView = RedirectView("https://github.com/T45K/CLIONE")
 
     @PostMapping("/event_handler")
     fun postEventHandler(@RequestBody rawRequestBody: String) {

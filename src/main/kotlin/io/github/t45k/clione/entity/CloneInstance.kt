@@ -6,5 +6,5 @@ data class CloneInstance(
     val endLine: Int,
     val id: Int,
     var status: CloneStatus,
-    val tokenSequence: List<String>? = null,
+    val tokenSequence: List<String> = emptyList(),
     var mapperCloneInstanceId: Int = -1)

@@ -65,7 +65,10 @@ class GitController(private val git: Git) {
             .call()
     }
 
-    fun findChangeFiles(oldCommitHash: String, newCommitHash: String): Pair<Set<String>, Set<String>> {
+    /**
+     * Execute `git diff oldCommitHash..newCommitHash` and collect changed files in each revision
+     */
+    fun findChangedFiles(oldCommitHash: String, newCommitHash: String): Pair<Set<String>, Set<String>> {
         val oldFileNames: MutableSet<String> = mutableSetOf()
         val newFileNames: MutableSet<String> = mutableSetOf()
         executeDiffCommand(oldCommitHash, newCommitHash)
@@ -78,10 +81,10 @@ class GitController(private val git: Git) {
     }
 
     /**
-     * Note: HEAD is old revision
      * This method must be called about a changed file
      */
     fun calcFileDiff(filePath: String, oldCommitHash: String, newCommitHash: String): FileDiff {
+        checkout(oldCommitHash)
         val fileName: String = repositoryPath.relativize(filePath.toPath()).toString()
         val entry: DiffEntry = executeDiffCommand(oldCommitHash, newCommitHash).first { it.oldPath == fileName }
 
@@ -103,20 +106,16 @@ class GitController(private val git: Git) {
 
     /**
      * Mapping line number of the file of old revision to new one
-     * Each value is increase/decrease value between old line number and new one
+     * Each value of list is increase/decrease value between old line number and new one
      */
     private fun mapLine(editList: EditList, size: Int): List<Int> {
         val lineMapping: Array<Int> = Array(size + 1) { 0 }
 
         for (edit: Edit in editList) {
             when (edit.type) {
-                Edit.Type.INSERT -> {
-                    lineMapping[edit.beginA + 1] += edit.endB - edit.beginB
-                }
+                Edit.Type.INSERT -> lineMapping[edit.beginA + 1] += edit.endB - edit.beginB
 
-                Edit.Type.DELETE -> {
-                    (edit.beginA + 1..edit.endA).forEach { lineMapping[it]-- }
-                }
+                Edit.Type.DELETE -> (edit.beginA + 1..edit.endA).forEach { lineMapping[it]-- }
 
                 Edit.Type.REPLACE -> {
                     lineMapping[edit.beginA + 1] += edit.endB - edit.beginB

@@ -4,6 +4,7 @@ import io.github.t45k.clione.entity.FileChangeType
 import io.github.t45k.clione.entity.FileDiff
 import io.reactivex.rxjava3.core.Observable
 import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.api.errors.JGitInternalException
 import org.eclipse.jgit.diff.DiffAlgorithm
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffFormatter
@@ -11,6 +12,7 @@ import org.eclipse.jgit.diff.Edit
 import org.eclipse.jgit.diff.EditList
 import org.eclipse.jgit.diff.RawText
 import org.eclipse.jgit.diff.RawTextComparator
+import org.eclipse.jgit.internal.storage.file.FileRepository
 import org.eclipse.jgit.lib.AbbreviatedObjectId
 import org.eclipse.jgit.lib.Constants
 import org.eclipse.jgit.lib.ObjectId
@@ -33,13 +35,17 @@ class GitController(private val git: Git) {
 
         fun clone(repositoryFullName: String, token: String, number: Int): GitController =
             Observable.just(
-                Git.cloneRepository()
-                    .setURI("https://github.com/$repositoryFullName.git")
-                    .setDirectory(Path.of("storage", "${repositoryFullName}_$number").toFile())
-                    .setCredentialsProvider(UsernamePasswordCredentialsProvider("token", token))
-                    .setCloneAllBranches(true)
-                    .call()
-                    .run { GitController(this) }
+                try {
+                    Git.cloneRepository()
+                        .setURI("https://github.com/$repositoryFullName.git")
+                        .setDirectory(Path.of("storage", "${repositoryFullName}_$number").toFile())
+                        .setCredentialsProvider(UsernamePasswordCredentialsProvider("token", token))
+                        .setCloneAllBranches(true)
+                        .call()
+                } catch (e: JGitInternalException) {
+                    FileRepository("storage/${repositoryFullName}_$number/.git")
+                        .run { Git(this) }
+                }.run { GitController(this) }
             )
                 .doOnSubscribe { logger.info("[START]\tclone $repositoryFullName") }
                 .doOnComplete { logger.info("[END]\tclone $repositoryFullName") }

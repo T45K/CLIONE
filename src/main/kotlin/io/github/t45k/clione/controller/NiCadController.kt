@@ -40,12 +40,6 @@ class NiCadController(private val sourceCodePath: Path, private val config: Runn
     private val tokenizer: Tokenizer = Tokenizer.create(config.lang)
 
     /**
-     * key: full path
-     * value: file contents
-     */
-    private val fileCache: MutableMap<String, List<String>> = mutableMapOf()
-
-    /**
      * Execute NiCad clone detector on the new revision of the target repository.
      * This is performed as follows.
      * 1. execute NiCad clone detector
@@ -56,8 +50,9 @@ class NiCadController(private val sourceCodePath: Path, private val config: Runn
     override fun executeOnNewRevision(changedFiles: Set<String>): Pair<CloneSets, IdCloneMap> {
         logger.info("[START]\tclone detection on new revision")
         execute()
-        val (cloneSets: CloneSets, idCloneMap: MutableMap<Int, CloneInstance>) = collectResult(changedFiles, CloneStatus.DELETE)
-        parseCandidateXML().forEach { cloneCandidate -> idCloneMap.computeIfAbsent(cloneCandidate.id) { cloneCandidate } }
+        val fileCache: MutableMap<String, List<String>> = mutableMapOf()
+        val (cloneSets: CloneSets, idCloneMap: MutableMap<Int, CloneInstance>) = collectResult(changedFiles, CloneStatus.ADD, fileCache)
+        parseCandidateXML(fileCache, changedFiles).forEach { cloneCandidate -> idCloneMap.computeIfAbsent(cloneCandidate.id) { cloneCandidate } }
         deleteNiCadResultFiles()
         logger.info("[END]\tclone detection on old revision")
         return cloneSets to idCloneMap
@@ -66,7 +61,8 @@ class NiCadController(private val sourceCodePath: Path, private val config: Runn
     override fun executeOnOldRevision(changedFiles: Set<String>): Pair<CloneSets, IdCloneMap> {
         logger.info("[START]\tclone detection on old revision")
         execute()
-        val result: Pair<CloneSets, IdCloneMap> = collectResult(changedFiles, CloneStatus.ADD)
+        val fileCache: MutableMap<String, List<String>> = mutableMapOf()
+        val result: Pair<CloneSets, IdCloneMap> = collectResult(changedFiles, CloneStatus.DELETE, fileCache)
         deleteNiCadResultFiles()
         logger.info("[END]\tclone detection on old revision")
         return result
@@ -81,7 +77,7 @@ class NiCadController(private val sourceCodePath: Path, private val config: Runn
     }
 
     @VisibleForTesting
-    fun parseCandidateXML(): List<CloneInstance> =
+    fun parseCandidateXML(fileCache: MutableMap<String, List<String>>, changedFiles: Set<String>): List<CloneInstance> =
         Files.readAllLines(cloneCandidateDataPath)
             .filter { it.matches("<source file=\"[^\"]+\" startline=\"[0-9]+\" endline=\"[0-9]+\">".toRegex()) }
             .asSequence()
@@ -90,12 +86,12 @@ class NiCadController(private val sourceCodePath: Path, private val config: Runn
                     .matchEntire(line)!!
                     .destructured
                     .let { (fileName, startLine, endLine) ->
-                        // No need to check a file that is stable or clones are not detected from(= not cached)
-                        if (!fileCache.containsKey(fileName) || startLine == endLine) {
+                        // No need to check a stable file
+                        if (!changedFiles.contains(fileName) || startLine == endLine) {
                             // dummy
                             return@mapIndexed CloneInstance("", 0, 0, 0, CloneStatus.ADD)
                         }
-                        val tokenSequence: List<String> = fileCache[fileName]!!
+                        val tokenSequence: List<String> = fileCache.computeIfAbsent(fileName) { Files.readAllLines(fileName.toPath()) }
                             .subList(startLine.toInt(), endLine.toInt() - 1)
                             .joinToString("\n")
                             .let { tokenizer.tokenize(it) }
@@ -106,11 +102,12 @@ class NiCadController(private val sourceCodePath: Path, private val config: Runn
             .toList()
 
     @VisibleForTesting
-    fun collectResult(changedFiles: Set<String>, initialStatus: CloneStatus): Pair<CloneSets, MutableMap<Int, CloneInstance>> =
+    fun collectResult(changedFiles: Set<String>, initialStatus: CloneStatus, fileCache: MutableMap<String, List<String>>)
+        : Pair<CloneSets, MutableMap<Int, CloneInstance>> =
         parseResultXML()
             .map {
-                convertXmlElementToCloneInstance(it.first, initialStatus, changedFiles) to
-                    convertXmlElementToCloneInstance(it.second, initialStatus, changedFiles)
+                convertXmlElementToCloneInstance(it.first, initialStatus, changedFiles, fileCache) to
+                    convertXmlElementToCloneInstance(it.second, initialStatus, changedFiles, fileCache)
             }
             .fold(SimpleGraph<Int, DefaultEdge>(DefaultEdge::class.java) to mutableMapOf<Int, CloneInstance>(),
                 { (cloneRelationGraph, idCloneMap), clonePair ->
@@ -145,13 +142,14 @@ class NiCadController(private val sourceCodePath: Path, private val config: Runn
                 nodeList.item(0) as Element to nodeList.item(1) as Element
             }
 
-    private fun convertXmlElementToCloneInstance(element: Element, initialStatus: CloneStatus, changedFiles: Set<String>): CloneInstance {
+    private fun convertXmlElementToCloneInstance(element: Element, initialStatus: CloneStatus, changedFiles: Set<String>,
+                                                 fileCache: MutableMap<String, List<String>>): CloneInstance {
         val fileName: String = element.getAttribute("file")
         val startLine: Int = element.getAttribute("startline").toInt()
         val endLine: Int = element.getAttribute("endline").toInt()
         val id: Int = element.getAttribute("pcid").toInt()
         return if (changedFiles.contains(fileName)) {
-            val tokenSequence: List<String> = fileCache.computeIfAbsent(fileName) { Files.readAllLines(Path.of(fileName)) }
+            val tokenSequence: List<String> = fileCache.computeIfAbsent(fileName) { Files.readAllLines(fileName.toPath()) }
                 .subList(startLine, endLine - 1)
                 .joinToString("\n")
                 .let { tokenizer.tokenize(it) }

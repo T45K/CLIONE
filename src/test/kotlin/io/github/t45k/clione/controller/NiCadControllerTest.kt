@@ -23,13 +23,14 @@ internal class NiCadControllerTest {
         val cloneDetector = NiCadController(git.getProjectPath().resolve(config.infix), config)
 
         val changedFiles: Set<String> = setOf("./storage/T45K/trial_0/src/Sample.java")
-        val (cloneSets: List<Set<Int>>, idCloneMap: IdCloneMap) = cloneDetector.collectResult(changedFiles, CloneStatus.ADD)
+        val fileCache: MutableMap<String, List<String>> = mutableMapOf()
+        val (cloneSets: List<Set<Int>>, idCloneMap: IdCloneMap) = cloneDetector.collectResult(changedFiles, CloneStatus.ADD, fileCache)
         assertEquals(1, cloneSets.size)
         assertEquals(2, cloneSets[0].size)
         assertNotNull(idCloneMap[1])
         assertNotNull(idCloneMap[4])
 
-        val clones: List<CloneInstance> = cloneDetector.parseCandidateXML()
+        val clones: List<CloneInstance> = cloneDetector.parseCandidateXML(fileCache, changedFiles)
         assertEquals(6, clones.size)
 
         git.deleteRepo()

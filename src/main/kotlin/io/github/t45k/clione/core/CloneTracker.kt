@@ -1,5 +1,6 @@
 package io.github.t45k.clione.core
 
+import com.google.common.annotations.VisibleForTesting
 import io.github.t45k.clione.controller.CloneDetectorController
 import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.controller.NiCadController
@@ -8,7 +9,7 @@ import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.FileChangeType
-import io.github.t45k.clione.entity.FileCloneMap
+import io.github.t45k.clione.entity.FileClonesMap
 import io.github.t45k.clione.entity.IdCloneMap
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -34,29 +35,31 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
 
         git.checkout(newCommitHash)
         val (newCloneSets: CloneSets, newIdCloneMap: IdCloneMap) = cloneDetector.executeOnNewRevision(newChangedFiles)
-        val newFileCloneMap: FileCloneMap = newIdCloneMap.values.groupBy { it.fileName }
+        val newFileClonesMap: FileClonesMap = newIdCloneMap.values.groupBy { it.fileName }
 
         git.checkout(oldCommitHash)
         val (oldCloneSets: CloneSets, oldIdCloneMap: IdCloneMap) = cloneDetector.executeOnOldRevision(oldChangedFiles)
-        val oldFileCloneMap: FileCloneMap = oldIdCloneMap.values.groupBy { it.fileName }
+        val oldFileClonesMap: FileClonesMap = oldIdCloneMap.values.groupBy { it.fileName }
 
-        mapClones(oldFileCloneMap, newFileCloneMap, oldChangedFiles, oldCommitHash, newCommitHash)
+        mapClones(oldFileClonesMap, newFileClonesMap, oldChangedFiles, oldCommitHash, newCommitHash)
 
         logger.info("[END]\tclone tracking on ${pullRequest.getNumber()}")
 
         return filterInconsistentChange(oldCloneSets, oldIdCloneMap) to filterInconsistentChange(newCloneSets, newIdCloneMap)
     }
 
-    private fun filterInconsistentChange(cloneSets: CloneSets, idCloneMap: IdCloneMap): List<List<CloneInstance>> =
+    @VisibleForTesting
+    fun filterInconsistentChange(cloneSets: CloneSets, idCloneMap: IdCloneMap): List<List<CloneInstance>> =
         cloneSets.filterNot { cloneSet ->
             cloneSet.all { (idCloneMap[it] ?: error("")).status == CloneStatus.STABLE }
                 || cloneSet.all { (idCloneMap[it] ?: error("")).status == CloneStatus.MODIFY }
         }
             .map { it.map { id -> idCloneMap[id] ?: error("") } }
 
-    private fun mapClones(oldFileCloneMap: FileCloneMap, newFileCloneMap: FileCloneMap, oldChangedFiles: Set<String>,
-                          oldCommitHash: String, newCommitHash: String) {
-        for ((oldFilesPath: String, clones: List<CloneInstance>) in oldFileCloneMap.entries) {
+    @VisibleForTesting
+    fun mapClones(oldFileClonesMap: FileClonesMap, newFileClonesMap: FileClonesMap, oldChangedFiles: Set<String>,
+                  oldCommitHash: String, newCommitHash: String) {
+        for ((oldFilesPath: String, clones: List<CloneInstance>) in oldFileClonesMap.entries) {
             if (!oldChangedFiles.contains(oldFilesPath)) {
                 continue
             }
@@ -67,7 +70,7 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
                 continue
             }
 
-            val candidates = newFileCloneMap[newFileName] ?: emptyList()
+            val candidates = newFileClonesMap[newFileName] ?: emptyList()
             mapClonesInSameFile(clones, candidates, lineMapping)
         }
     }

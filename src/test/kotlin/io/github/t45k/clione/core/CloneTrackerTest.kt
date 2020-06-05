@@ -1,10 +1,14 @@
 package io.github.t45k.clione.core
 
 import io.github.t45k.clione.controller.GitController
+import io.github.t45k.clione.controller.NiCadController
 import io.github.t45k.clione.controller.PullRequestController
+import io.github.t45k.clione.entity.CloneStatus
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Test
+import util.toPath
+import kotlin.test.assertEquals
 
 internal class CloneTrackerTest {
 
@@ -22,7 +26,26 @@ internal class CloneTrackerTest {
             .also { every { it.getComparisonCommits() } returns (OLD_COMMIT_HASH to NEW_COMMIT_HASH) }
             .also { every { it.getRepositoryFullName() } returns REPOSITORY_FULL_NAME }
             .also { every { it.getNumber() } returns 0 }
+        val cloneDetector = NiCadController(git.getProjectPath().resolve(config.infix), config)
+        val changedFile = setOf("./storage/T45K/trial_0/src/Sample.java", git.getProjectPath().resolve("src/Sample.java").toString())
+
+        git.checkout(NEW_COMMIT_HASH)
+        val newFileCache: MutableMap<String, List<String>> = mutableMapOf()
+        val (_, newIdCloneMap) = cloneDetector.collectResult(changedFile, CloneStatus.ADD, newFileCache)
+        cloneDetector.parseCandidateXML(newFileCache, changedFile).forEach { candidate -> newIdCloneMap.computeIfAbsent(candidate.id) { candidate } }
+        val newFileClonesMap = newIdCloneMap.values.groupBy { it.fileName.substringAfter("./").toPath().toAbsolutePath().toString() }
+
+        git.checkout(OLD_COMMIT_HASH)
+        val oldFileCache: MutableMap<String, List<String>> = mutableMapOf()
+        val (oldCloneSets, oldIdCloneMap) = cloneDetector.collectResult(changedFile, CloneStatus.DELETE, oldFileCache)
+        val oldFileClonesMap = oldIdCloneMap.values.groupBy { it.fileName.substringAfter("./").toPath().toAbsolutePath().toString() }
+
         val cloneTracker = CloneTracker(git, pullRequest, config)
-        val (oldCloneSets, newCloneSets) = cloneTracker.track()
+        cloneTracker.mapClones(oldFileClonesMap, newFileClonesMap, changedFile, OLD_COMMIT_HASH, NEW_COMMIT_HASH)
+        val oldInconsistentChangedClones = cloneTracker.filterInconsistentChange(oldCloneSets, oldIdCloneMap)
+
+        assertEquals(1, oldInconsistentChangedClones.size)
+
+        git.deleteRepo()
     }
 }

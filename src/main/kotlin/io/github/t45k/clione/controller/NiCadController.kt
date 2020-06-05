@@ -69,7 +69,7 @@ class NiCadController(private val sourceCodePath: Path, private val config: Runn
     }
 
     private fun execute() {
-        val command: Array<String> = arrayOf("./nicad5", "blocks", config.lang, sourceCodePath.toAbsolutePath().toString(), "clione")
+        val command: Array<String> = arrayOf("./nicad6", "blocks", config.lang, sourceCodePath.toAbsolutePath().toString(), "clione")
         val result: CommandLine.CommandLineResult = CommandLine().execute(nicadDir.toFile(), *command)
         if (!result.isSuccess) {
             throw RuntimeException(result.outputLines.joinToString("\n"))

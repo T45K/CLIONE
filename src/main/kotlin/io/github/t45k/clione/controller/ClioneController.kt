@@ -2,7 +2,7 @@ package io.github.t45k.clione.controller
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
-import io.github.t45k.clione.exception.NoPropertyFileExistsException
+import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.github.GitHubAuthenticator
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -11,30 +11,29 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.servlet.view.RedirectView
 import util.DigestUtil
 import java.util.ResourceBundle
 import javax.servlet.http.HttpServletRequest
 
 @RestController
 class ClioneApiController {
-    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
-    private val githubWebhookSecret: String
-
-    init {
-        val bundle: ResourceBundle = ResourceBundle.getBundle("verify") ?: throw NoPropertyFileExistsException()
-        githubWebhookSecret = bundle.getString("GITHUB_WEBHOOK_SECRET")
-    }
 
     companion object {
         const val WEBHOOK_SIGNATURE: String = "x-hub-signature"
         const val WEBHOOK_EVENT: String = "x-github-event"
+
+        private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+
+        private val bundle: ResourceBundle = ResourceBundle.getBundle("verify") ?: throw NoPropertyFileExistsException()
+        private val githubWebhookSecret: String = bundle.getString("GITHUB_WEBHOOK_SECRET")
     }
 
     @Autowired
     private lateinit var request: HttpServletRequest
 
     @GetMapping("")
-    fun home(): String = "hello"
+    fun home(): RedirectView = RedirectView("https://github.com/T45K/CLIONE")
 
     @PostMapping("/event_handler")
     fun postEventHandler(@RequestBody rawRequestBody: String) {

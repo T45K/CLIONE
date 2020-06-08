@@ -2,6 +2,8 @@ package io.github.t45k.clione.controller
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.github.t45k.clione.core.CloneTracker
+import io.github.t45k.clione.core.RunningConfig
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.github.GitHubAuthenticator
 import org.slf4j.Logger
@@ -54,7 +56,15 @@ class ClioneApiController {
         val (pullRequest: PullRequestController, token: String) = GitHubAuthenticator.authenticate(json)
         val git: GitController = GitController.clone(repositoryFullName, token, pullRequestNumber)
 
-        pullRequest.comment("hello")
+        runCatching {
+            val cloneTracker = CloneTracker(git, pullRequest, RunningConfig("src", "java"))
+            val (oldInconsistentChangedCloneSets, newInconsistentChangedCloneSets) = cloneTracker.track()
+            pullRequest.comment(oldInconsistentChangedCloneSets)
+        }.onFailure {
+            logger.error(it.toString())
+            pullRequest.errorComment()
+        }
+
         git.deleteRepo()
     }
 

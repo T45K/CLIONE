@@ -23,17 +23,4 @@ internal class PullRequestControllerTest {
         assertEquals("6b177f614af8d904df6852150bec0d0af36d3f5a", oldCommitHash)
         assertEquals("5d758afe17613427350346ec453fd1804c942f74", newCommitHash)
     }
-
-    @Test
-    fun testGetFileUrlBase() {
-        assertEquals("https://github.com/T45K/CLIONE/blob/ci-test", pullRequestController.getFileUrlBase())
-
-        val omesisPullRequestController: PullRequestController = GitHubBuilder.fromEnvironment()
-            .build()
-            .getRepository("omegasisters/homepage")
-            .getPullRequest(404)
-            .run { PullRequestController(this) }
-
-        assertEquals("https://github.com/T45K/homepage/blob/update_subscribers_for_230k", omesisPullRequestController.getFileUrlBase())
-    }
 }

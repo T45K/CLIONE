@@ -12,3 +12,4 @@ fun deleteRecursive(path: Path) {
 }
 
 fun String.toPath(): Path = Path.of(this)
+fun String.toRealPath(): Path = Path.of(this).toRealPath()

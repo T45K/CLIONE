@@ -7,7 +7,7 @@ import io.github.t45k.clione.entity.CloneStatus
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Test
-import util.toPath
+import util.toRealPath
 import kotlin.test.assertEquals
 
 internal class CloneTrackerTest {
@@ -33,12 +33,12 @@ internal class CloneTrackerTest {
         val newFileCache: MutableMap<String, List<String>> = mutableMapOf()
         val (_, newIdCloneMap) = cloneDetector.collectResult(changedFile, CloneStatus.ADD, newFileCache)
         cloneDetector.parseCandidateXML(newFileCache, changedFile).forEach { candidate -> newIdCloneMap.computeIfAbsent(candidate.id) { candidate } }
-        val newFileClonesMap = newIdCloneMap.values.groupBy { it.fileName.substringAfter("./").toPath().toAbsolutePath().toString() }
+        val newFileClonesMap = newIdCloneMap.values.groupBy { it.fileName.toRealPath().toString() }
 
         git.checkout(OLD_COMMIT_HASH)
         val oldFileCache: MutableMap<String, List<String>> = mutableMapOf()
         val (oldCloneSets, oldIdCloneMap) = cloneDetector.collectResult(changedFile, CloneStatus.DELETE, oldFileCache)
-        val oldFileClonesMap = oldIdCloneMap.values.groupBy { it.fileName.substringAfter("./").toPath().toAbsolutePath().toString() }
+        val oldFileClonesMap = oldIdCloneMap.values.groupBy { it.fileName.toRealPath().toString() }
 
         val cloneTracker = CloneTracker(git, pullRequest, config)
         cloneTracker.mapClones(oldFileClonesMap, newFileClonesMap, changedFile, OLD_COMMIT_HASH, NEW_COMMIT_HASH)

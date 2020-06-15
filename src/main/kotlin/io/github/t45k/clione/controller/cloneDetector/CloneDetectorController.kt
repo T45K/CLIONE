@@ -1,4 +1,4 @@
-package io.github.t45k.clione.controller
+package io.github.t45k.clione.controller.cloneDetector
 
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.IdCloneMap

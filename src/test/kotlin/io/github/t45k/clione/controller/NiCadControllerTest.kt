@@ -1,5 +1,6 @@
 package io.github.t45k.clione.controller
 
+import io.github.t45k.clione.controller.cloneDetector.NiCadController
 import io.github.t45k.clione.core.RunningConfig
 import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneStatus

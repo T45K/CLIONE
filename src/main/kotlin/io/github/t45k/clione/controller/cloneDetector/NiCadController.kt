@@ -1,4 +1,4 @@
-package io.github.t45k.clione.controller
+package io.github.t45k.clione.controller.cloneDetector
 
 import com.github.kusumotolab.sdl4j.util.CommandLine
 import com.google.common.annotations.VisibleForTesting

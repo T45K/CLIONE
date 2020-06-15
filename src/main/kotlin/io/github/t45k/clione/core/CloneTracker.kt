@@ -1,10 +1,10 @@
 package io.github.t45k.clione.core
 
 import com.google.common.annotations.VisibleForTesting
-import io.github.t45k.clione.controller.CloneDetectorController
 import io.github.t45k.clione.controller.GitController
-import io.github.t45k.clione.controller.NiCadController
 import io.github.t45k.clione.controller.PullRequestController
+import io.github.t45k.clione.controller.cloneDetector.CloneDetectorController
+import io.github.t45k.clione.controller.cloneDetector.NiCadController
 import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus

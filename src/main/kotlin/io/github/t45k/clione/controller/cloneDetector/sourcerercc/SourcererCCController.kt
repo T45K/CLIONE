@@ -38,8 +38,39 @@ class SourcererCCController(private val sourceCodePath: Path, config: RunningCon
         else -> ""
     }
 
+    // TODO issue #19
     override fun executeOnNewRevision(changedFiles: Set<String>): Pair<CloneSets, IdCloneMap> {
-        TODO("Not yet implemented")
+        cleanup()
+
+        val nodeDir = Files.createDirectory(sourceCodePath.resolve("NODE"))
+        Files.createDirectory(nodeDir.resolve("query"))
+        val (idCloneMap: IdCloneMap, bagOfTokens: List<BagOfToken>) = Files.walk(sourceCodePath).asSequence()
+            .filter { it.toString().endsWith(fileExtension) }
+            .map { it.toRealPath() }
+            .flatMap {
+                val status = if (changedFiles.contains(it.toString())) CloneStatus.ADD else CloneStatus.STABLE
+                JavaSCCBlockExtractor().extract(Files.readString(it), it, status).asSequence()
+            }
+            .mapIndexed { index, (candidate, block) -> (index + 1 to candidate.setId(index)) to block.toBagOfToken() }
+            .fold(mutableMapOf<Int, CloneInstance>() to mutableListOf<BagOfToken>()) { acc, (indexedCloneInstance: Pair<Int, CloneInstance>, bagOfToken) ->
+                acc.first.also { it[indexedCloneInstance.first] = indexedCloneInstance.second } to
+                    acc.second.also { it.add(bagOfToken) }
+            }
+
+        val bagOfTokensFileContents: String = generateSCCFormat(bagOfTokens)
+
+        // SCC execution
+        Files.writeString(Path.of(sourceCodePath.toString(), "NODE", "query", candidateFileName), bagOfTokensFileContents)
+        SearchManager.main(arrayOf("init", "8", "$sourceCodePath/", sccPropertiesLocation))
+        SearchManager.main(arrayOf("index", "8", "$sourceCodePath/", sccPropertiesLocation))
+        collectIndexFiles()
+        SearchManager.main(arrayOf("search", "8", "$sourceCodePath/", sccPropertiesLocation))
+        val sccResult: List<String> = Files.readAllLines(Path.of(sourceCodePath.toString(), "NODE", "output8.0", resultFileName))
+
+        cleanup()
+
+        return createCloneSets(sccResult) to
+            idCloneMap
     }
 
     /**

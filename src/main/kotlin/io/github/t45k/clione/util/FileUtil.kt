@@ -1,4 +1,4 @@
-package util
+package io.github.t45k.clione.util
 
 import java.nio.file.Files
 import java.nio.file.Path

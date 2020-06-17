@@ -4,10 +4,10 @@ import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.controller.NiCadController
 import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.entity.CloneStatus
+import io.github.t45k.clione.util.toRealPath
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Test
-import util.toRealPath
 import kotlin.test.assertEquals
 
 internal class CloneTrackerTest {

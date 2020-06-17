@@ -2,6 +2,8 @@ package io.github.t45k.clione.controller
 
 import io.github.t45k.clione.entity.FileChangeType
 import io.github.t45k.clione.entity.FileDiff
+import io.github.t45k.clione.util.deleteRecursive
+import io.github.t45k.clione.util.toPath
 import io.reactivex.rxjava3.core.Observable
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.JGitInternalException
@@ -25,8 +27,6 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import util.deleteRecursive
-import util.toPath
 import java.nio.file.Path
 
 class GitController(private val git: Git) {

@@ -6,7 +6,7 @@ import io.github.t45k.clione.entity.CloneStatus
 /**
  * Special CloneInstance class to delay giving id.
  */
-data class DelayCloneInstance(
+data class LazyCloneInstance(
     val fileName: String,
     val startLine: Int,
     val endLine: Int,

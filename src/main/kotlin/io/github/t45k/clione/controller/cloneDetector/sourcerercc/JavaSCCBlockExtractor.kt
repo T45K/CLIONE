@@ -15,7 +15,7 @@ class JavaSCCBlockExtractor : SCCBlockExtractor {
     /**
      * Extract clone candidates by using JDT AST.
      */
-    override fun extract(code: String, filePath: Path, cloneStatus: CloneStatus): List<DelayCloneInstance> =
+    override fun extract(code: String, filePath: Path, cloneStatus: CloneStatus): List<Pair<LazyCloneInstance, String>> =
         ASTParser.newParser(AST.JLS13)
             .apply { this.setSource(code.toCharArray()) }
             .run { this.createAST(NullProgressMonitor()) as CompilationUnit }
@@ -24,9 +24,9 @@ class JavaSCCBlockExtractor : SCCBlockExtractor {
                     .apply { compilationUnit.accept(this) }
                     .blocks
                     .map {
-                        DelayCloneInstance(filePath.toString(), compilationUnit.getLineNumber(it.startPosition),
+                        LazyCloneInstance(filePath.toString(), compilationUnit.getLineNumber(it.startPosition),
                             compilationUnit.getLineNumber(it.startPosition + it.length - 1), cloneStatus,
-                            JDTTokenizer().tokenize(it.toString()))
+                            JDTTokenizer().tokenize(it.toString())) to it.toString()
                     }
             }
 

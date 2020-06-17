@@ -1,4 +1,4 @@
-package util
+package io.github.t45k.clione.util
 
 import org.apache.commons.codec.binary.Hex
 import org.bouncycastle.util.io.pem.PemReader

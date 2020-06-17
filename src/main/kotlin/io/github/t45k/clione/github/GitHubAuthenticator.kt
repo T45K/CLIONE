@@ -5,11 +5,11 @@ import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.databind.JsonNode
 import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
+import io.github.t45k.clione.util.DigestUtil
+import io.github.t45k.clione.util.minutesAfter
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.kohsuke.github.GitHub
 import org.kohsuke.github.GitHubBuilder
-import util.DigestUtil
-import util.minutesAfter
 import java.security.Security
 import java.security.interfaces.RSAPrivateKey
 import java.util.Date

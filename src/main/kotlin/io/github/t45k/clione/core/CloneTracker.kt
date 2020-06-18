@@ -17,6 +17,7 @@ import java.nio.file.Path
 import kotlin.math.max
 import kotlin.math.min
 
+// TODO ファイル名変更で中身は変わっていないクローンをSTABLEにする
 class CloneTracker(private val git: GitController, private val pullRequest: PullRequestController,
                    private val config: RunningConfig) {
 
@@ -24,7 +25,7 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     }
 
-    private val sourceCodePath: Path = git.getProjectPath().resolve(config.infix)
+    private val sourceCodePath: Path = git.getProjectPath().resolve(config.infix).toRealPath()
 
     fun track(): Pair<List<List<CloneInstance>>, List<List<CloneInstance>>> {
         logger.info("[START]\tClone Tracking on ${pullRequest.getRepositoryFullName()}/${pullRequest.getNumber()}")
@@ -33,13 +34,17 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
         val cloneDetector: CloneDetectorController = NiCadController(sourceCodePath, config)
         val (oldChangedFiles: Set<String>, newChangedFiles: Set<String>) = git.findChangedFiles(oldCommitHash, newCommitHash)
 
+        logger.info("[START]\tNew revision: $newCommitHash")
         git.checkout(newCommitHash)
-        val (newCloneSets: CloneSets, newIdCloneMap: IdCloneMap) = cloneDetector.executeOnNewRevision(newChangedFiles)
+        val (newCloneSets: CloneSets, newIdCloneMap: IdCloneMap) = cloneDetector.execute(newChangedFiles, CloneStatus.ADD)
         val newFileClonesMap: FileClonesMap = newIdCloneMap.values.groupBy { it.fileName }
+        logger.info("[START]\tNew revision: $newCommitHash")
 
+        logger.info("[END]\tOld revision: $oldCommitHash")
         git.checkout(oldCommitHash)
-        val (oldCloneSets: CloneSets, oldIdCloneMap: IdCloneMap) = cloneDetector.executeOnOldRevision(oldChangedFiles)
+        val (oldCloneSets: CloneSets, oldIdCloneMap: IdCloneMap) = cloneDetector.execute(oldChangedFiles, CloneStatus.DELETE)
         val oldFileClonesMap: FileClonesMap = oldIdCloneMap.values.groupBy { it.fileName }
+        logger.info("[END]\tOld revision: $oldCommitHash")
 
         mapClones(oldFileClonesMap, newFileClonesMap, oldChangedFiles, oldCommitHash, newCommitHash)
 

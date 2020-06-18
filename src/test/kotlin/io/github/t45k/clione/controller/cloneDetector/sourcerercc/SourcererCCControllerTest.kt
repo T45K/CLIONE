@@ -2,8 +2,10 @@ package io.github.t45k.clione.controller.cloneDetector.sourcerercc
 
 import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.core.RunningConfig
+import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.util.toRealPath
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 internal class SourcererCCControllerTest {
 
@@ -19,15 +21,10 @@ internal class SourcererCCControllerTest {
         val cloneDetector = SourcererCCController(git.getProjectPath().resolve(config.infix), config)
 
         val changedFiles: Set<String> = setOf("./storage/T45K/trial_0/src/Sample.java".toRealPath().toString())
-        val (newCloneSets, newIdCloneMap) = cloneDetector.executeOnNewRevision(changedFiles)
-
         git.checkout(OLD_COMMIT_HASH)
-        val (oldCloneSets, oldIdCloneMap) = cloneDetector.executeOnOldRevision(changedFiles)
+        val (cloneSets: CloneSets, _) = cloneDetector.executeOnOldRevision(changedFiles)
 
-        println(newCloneSets)
-        println(newIdCloneMap)
-        println(oldCloneSets)
-        println(oldIdCloneMap)
+        assertEquals(listOf(setOf(1, 4)), cloneSets)
 
         git.deleteRepo()
     }

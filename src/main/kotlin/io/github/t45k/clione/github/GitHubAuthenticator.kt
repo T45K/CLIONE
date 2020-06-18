@@ -22,7 +22,7 @@ class GitHubAuthenticator {
         }
 
         private val bundle: ResourceBundle = ResourceBundle.getBundle("github")
-            ?: throw NoPropertyFileExistsException()
+            ?: throw NoPropertyFileExistsException("github.properties does not exist")
         private val githubPrivateKey: RSAPrivateKey = DigestUtil.getRSAPrivateKeyFromPEMFileContents(bundle.getString("GITHUB_PRIVATE_KEY"))
         private val githubAppIdentifier: String = bundle.getString("GITHUB_APP_IDENTIFIER")
 

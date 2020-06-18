@@ -27,9 +27,9 @@ class NiCadController(private val sourceCodePath: Path, private val config: Runn
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-        private val bundle: ResourceBundle = ResourceBundle.getBundle("resource")
-            ?: throw NoPropertyFileExistsException()
-        private val nicadDir: Path = bundle.getString("NICAD_DIR").toPath()
+        private val nicadDir: Path = ResourceBundle.getBundle("resource")
+            ?.getString("NICAD_DIR")?.toPath()
+            ?: throw NoPropertyFileExistsException("resource.properties does not exist")
     }
 
     private val cloneDetectionResultPath: Path = sourceCodePath.parent
@@ -69,7 +69,7 @@ class NiCadController(private val sourceCodePath: Path, private val config: Runn
     }
 
     private fun execute() {
-        val command: Array<String> = arrayOf("./nicad6", "blocks", config.lang, sourceCodePath.toRealPath().toString(), "clione")
+        val command: Array<String> = arrayOf("./nicad6", "blocks", config.lang.toString(), sourceCodePath.toRealPath().toString(), "clione")
         val result: CommandLine.CommandLineResult = CommandLine().execute(nicadDir.toFile(), *command)
         if (!result.isSuccess) {
             throw RuntimeException(result.outputLines.joinToString("\n"))

@@ -17,7 +17,7 @@ import java.nio.file.Path
 import kotlin.math.absoluteValue
 import kotlin.streams.asSequence
 
-class SourcererCCController(private val sourceCodePath: Path, config: RunningConfig) : CloneDetectorController {
+class SourcererCCController(private val sourceCodePath: Path, private val config: RunningConfig) : CloneDetectorController {
 
     companion object {
         private const val sccPropertiesLocation = "./src/main/resources/sourcerer-cc.properties"
@@ -30,14 +30,6 @@ class SourcererCCController(private val sourceCodePath: Path, config: RunningCon
         private val generatedDirs = listOf("index", "fwdindex", "NODE", "backup_output", "gtpmindex", "nodes_completed.txt")
     }
 
-    // TODO other languages' extension
-    private val fileExtension: String = when (config.lang) {
-        "java" -> ".java"
-        "kotlin" -> ".kt"
-        "python" -> ".py"
-        else -> ""
-    }
-
     // TODO issue #19
     override fun executeOnNewRevision(changedFiles: Set<String>): Pair<CloneSets, IdCloneMap> {
         cleanup()
@@ -47,7 +39,7 @@ class SourcererCCController(private val sourceCodePath: Path, config: RunningCon
         val nodeDir = Files.createDirectory(sourceCodePath.resolve("NODE"))
         Files.createDirectory(nodeDir.resolve("query"))
         val (idCloneMap: IdCloneMap, bagOfTokens: List<BagOfToken>) = Files.walk(sourceCodePath).asSequence()
-            .filter { it.toString().endsWith(fileExtension) }
+            .filter { it.toString().endsWith(config.lang.extension) }
             .map { it.toRealPath() }
             .flatMap {
                 val status = if (changedFiles.contains(it.toString())) CloneStatus.ADD else CloneStatus.STABLE
@@ -87,7 +79,7 @@ class SourcererCCController(private val sourceCodePath: Path, config: RunningCon
         val nodeDir = Files.createDirectory(sourceCodePath.resolve("NODE"))
         Files.createDirectory(nodeDir.resolve("query"))
         val (idCloneMap: IdCloneMap, bagOfTokens: List<BagOfToken>) = Files.walk(sourceCodePath).asSequence()
-            .filter { it.toString().endsWith(fileExtension) }
+            .filter { it.toString().endsWith(config.lang.extension) }
             .map { it.toRealPath() }
             .flatMap {
                 val status = if (changedFiles.contains(it.toString())) CloneStatus.DELETE else CloneStatus.STABLE

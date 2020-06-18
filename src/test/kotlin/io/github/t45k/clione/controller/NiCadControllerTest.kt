@@ -1,6 +1,7 @@
 package io.github.t45k.clione.controller
 
 import io.github.t45k.clione.controller.cloneDetector.NiCadController
+import io.github.t45k.clione.core.Language
 import io.github.t45k.clione.core.RunningConfig
 import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneStatus
@@ -20,7 +21,7 @@ internal class NiCadControllerTest {
     fun test() {
         val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", 0)
         git.checkout(OLD_COMMIT_HASH)
-        val config = RunningConfig("src", "java")
+        val config = RunningConfig("src", Language.JAVA)
         val cloneDetector = NiCadController(git.getProjectPath().resolve(config.infix), config)
 
         val changedFiles: Set<String> = setOf("./storage/T45K/trial_0/src/Sample.java")

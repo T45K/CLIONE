@@ -1,6 +1,6 @@
-package io.github.t45k.clione.controller
+package io.github.t45k.clione.controller.cloneDetector
 
-import io.github.t45k.clione.controller.cloneDetector.NiCadController
+import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.core.Language
 import io.github.t45k.clione.core.RunningConfig
 import io.github.t45k.clione.entity.CloneInstance

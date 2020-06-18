@@ -27,7 +27,7 @@ class SourcererCCController(private val sourceCodePath: Path, config: RunningCon
         private const val fwdIndexFilesLocation = "NODE/fwdindex/shards"
 
         private val symbols = arrayOf("`", "~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "+", "=", "{", "[", "}", "]", "|", "\\", ":", ";", "\"", "'", "<", ",", ">", ".", "/", "?", " ", "\n", "\r", "\t")
-        private val generatedDirs = listOf("index", "fwdindex", "NODE", "backup_output", "gtpmindex", "nodes_complieted.txt")
+        private val generatedDirs = listOf("index", "fwdindex", "NODE", "backup_output", "gtpmindex", "nodes_completed.txt")
     }
 
     // TODO other languages' extension
@@ -41,6 +41,8 @@ class SourcererCCController(private val sourceCodePath: Path, config: RunningCon
     // TODO issue #19
     override fun executeOnNewRevision(changedFiles: Set<String>): Pair<CloneSets, IdCloneMap> {
         cleanup()
+        SearchManager.clonesWriter = null
+        SearchManager.recoveryWriter = null
 
         val nodeDir = Files.createDirectory(sourceCodePath.resolve("NODE"))
         Files.createDirectory(nodeDir.resolve("query"))
@@ -69,8 +71,7 @@ class SourcererCCController(private val sourceCodePath: Path, config: RunningCon
 
         cleanup()
 
-        return createCloneSets(sccResult) to
-            idCloneMap
+        return createCloneSets(sccResult) to idCloneMap
     }
 
     /**
@@ -80,6 +81,8 @@ class SourcererCCController(private val sourceCodePath: Path, config: RunningCon
      */
     override fun executeOnOldRevision(changedFiles: Set<String>): Pair<CloneSets, IdCloneMap> {
         cleanup()
+        SearchManager.clonesWriter = null
+        SearchManager.recoveryWriter = null
 
         val nodeDir = Files.createDirectory(sourceCodePath.resolve("NODE"))
         Files.createDirectory(nodeDir.resolve("query"))
@@ -108,8 +111,7 @@ class SourcererCCController(private val sourceCodePath: Path, config: RunningCon
 
         cleanup()
 
-        return createCloneSets(sccResult) to
-            idCloneMap
+        return createCloneSets(sccResult) to idCloneMap
     }
 
     /**

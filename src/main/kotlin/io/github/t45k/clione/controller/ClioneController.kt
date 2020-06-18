@@ -3,6 +3,7 @@ package io.github.t45k.clione.controller
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.t45k.clione.core.CloneTracker
+import io.github.t45k.clione.core.Language
 import io.github.t45k.clione.core.RunningConfig
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.github.GitHubAuthenticator
@@ -27,8 +28,9 @@ class ClioneApiController {
 
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-        private val bundle: ResourceBundle = ResourceBundle.getBundle("verify") ?: throw NoPropertyFileExistsException()
-        private val githubWebhookSecret: String = bundle.getString("GITHUB_WEBHOOK_SECRET")
+        private val githubWebhookSecret: String = ResourceBundle.getBundle("verify")
+            ?.getString("GITHUB_WEBHOOK_SECRET")
+            ?: throw NoPropertyFileExistsException("verify.properties does not exist")
     }
 
     @Autowired
@@ -57,7 +59,7 @@ class ClioneApiController {
         val git: GitController = GitController.clone(repositoryFullName, token, pullRequestNumber)
 
         runCatching {
-            val cloneTracker = CloneTracker(git, pullRequest, RunningConfig("src", "java"))
+            val cloneTracker = CloneTracker(git, pullRequest, RunningConfig("src", Language.JAVA))
             val (oldInconsistentChangedCloneSets, newInconsistentChangedCloneSets) = cloneTracker.track()
             pullRequest.comment(oldInconsistentChangedCloneSets)
         }.onFailure {

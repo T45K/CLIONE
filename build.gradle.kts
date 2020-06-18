@@ -27,6 +27,7 @@ dependencies {
     implementation(fileTree("./lib/github-api-1.113-SNAPSHOT.jar"))
     implementation(fileTree("./lib/github-api-1.113-SNAPSHOT-jar-with-dependencies.jar"))
     implementation(fileTree("./lib/indexbased.SearchManager.jar"))
+    implementation(fileTree("./lib/kotlin-grammar-tools-0.1-43.jar"))
     implementation("org.bouncycastle:bcprov-jdk15on:1.65")
     implementation("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
     implementation("io.reactivex.rxjava3:rxkotlin:3.0.0")

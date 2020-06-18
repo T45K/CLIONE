@@ -20,7 +20,7 @@ internal class CloneTrackerTest {
 
     @Test
     fun test() {
-        val config = RunningConfig("src", "java")
+        val config = RunningConfig("src", Language.JAVA)
         val git = GitController.clone(REPOSITORY_FULL_NAME, "", 0)
         val pullRequest: PullRequestController = mockk<PullRequestController>()
             .also { every { it.getComparisonCommits() } returns (OLD_COMMIT_HASH to NEW_COMMIT_HASH) }

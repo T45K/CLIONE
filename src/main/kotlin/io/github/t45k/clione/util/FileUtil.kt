@@ -8,7 +8,7 @@ fun deleteRecursive(path: Path) {
         Files.list(path)
             .forEach { deleteRecursive(it) }
     }
-    Files.delete(path)
+    Files.deleteIfExists(path)
 }
 
 fun String.toPath(): Path = Path.of(this)

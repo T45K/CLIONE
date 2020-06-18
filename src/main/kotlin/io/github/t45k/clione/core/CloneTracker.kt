@@ -17,7 +17,6 @@ import java.nio.file.Path
 import kotlin.math.max
 import kotlin.math.min
 
-// TODO ファイル名変更で中身は変わっていないクローンをSTABLEにする
 class CloneTracker(private val git: GitController, private val pullRequest: PullRequestController,
                    private val config: RunningConfig) {
 
@@ -71,11 +70,14 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
 
             val (type: FileChangeType, lineMapping: List<Int>, newFileName: String) =
                 git.calcFileDiff(oldFilesPath, oldCommitHash, newCommitHash)
+            val candidates: List<CloneInstance> = newFileClonesMap[newFileName] ?: emptyList()
             if (type == FileChangeType.DELETE) {
                 continue
+            } else if (lineMapping.isEmpty()) {
+                clones.forEach { it.status = CloneStatus.STABLE }
+                candidates.forEach { it.status = CloneStatus.STABLE }
             }
 
-            val candidates = newFileClonesMap[newFileName] ?: emptyList()
             mapClonesInSameFile(clones, candidates, lineMapping)
         }
     }

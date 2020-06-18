@@ -87,7 +87,9 @@ class GitController(private val git: Git) {
     }
 
     /**
-     * This method must be called about a changed file
+     * This method must be called about a changed file.n
+     *
+     * If a change between the commits is only change of file name, line mapping is empty
      */
     fun calcFileDiff(filePath: String, oldCommitHash: String, newCommitHash: String): FileDiff {
         checkout(oldCommitHash)
@@ -104,6 +106,10 @@ class GitController(private val git: Git) {
         val newRawText: RawText = readBlob(entry.newId)
         val editList: EditList = DiffAlgorithm.getAlgorithm(DiffAlgorithm.SupportedAlgorithm.HISTOGRAM)
             .diff(RawTextComparator.DEFAULT, oldRawText, newRawText)
+
+        if (editList.isEmpty()) {
+            return FileDiff(FileChangeType.MODIFY, emptyList(), completePath(entry.newPath))
+        }
         val size: Int = String(oldRawText.rawContent).split("\n").size
         return FileDiff(FileChangeType.MODIFY, mapLine(editList, size), completePath(entry.newPath))
     }

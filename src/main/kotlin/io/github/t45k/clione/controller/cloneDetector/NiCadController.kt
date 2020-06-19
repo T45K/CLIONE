@@ -23,7 +23,7 @@ import java.nio.file.Path
 import java.util.ResourceBundle
 import javax.xml.parsers.DocumentBuilderFactory
 
-class NiCadController(private val sourceCodePath: Path, private val config: RunningConfig) : CloneDetectorController {
+class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractCloneDetectorController(sourceCodePath, config) {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 

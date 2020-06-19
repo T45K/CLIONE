@@ -11,7 +11,7 @@ import io.github.t45k.clione.entity.IdCloneMap
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.util.deleteRecursive
 import io.github.t45k.clione.util.toPath
-import org.jgrapht.alg.clique.BronKerboschCliqueFinder
+import org.jgrapht.alg.clique.DegeneracyBronKerboschCliqueFinder
 import org.jgrapht.graph.DefaultEdge
 import org.jgrapht.graph.SimpleGraph
 import org.slf4j.Logger
@@ -111,7 +111,7 @@ class NiCadController(private val sourceCodePath: Path, private val config: Runn
                     cloneRelationGraph to idCloneMap
                 })
             .let {
-                BronKerboschCliqueFinder(it.first)
+                DegeneracyBronKerboschCliqueFinder(it.first)
                     .iterator()
                     .asSequence()
                     .toList() to it.second

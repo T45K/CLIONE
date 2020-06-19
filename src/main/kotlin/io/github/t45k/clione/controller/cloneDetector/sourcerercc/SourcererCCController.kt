@@ -9,7 +9,7 @@ import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.IdCloneMap
 import io.github.t45k.clione.util.deleteRecursive
-import org.jgrapht.alg.clique.BronKerboschCliqueFinder
+import org.jgrapht.alg.clique.DegeneracyBronKerboschCliqueFinder
 import org.jgrapht.graph.DefaultEdge
 import org.jgrapht.graph.SimpleGraph
 import org.slf4j.Logger
@@ -111,7 +111,7 @@ class SourcererCCController(private val sourceCodePath: Path, private val config
                 graph
             }
             .let {
-                BronKerboschCliqueFinder(it)
+                DegeneracyBronKerboschCliqueFinder(it)
                     .iterator()
                     .asSequence()
                     .toList()

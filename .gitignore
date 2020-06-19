@@ -33,3 +33,5 @@ out/
 
 ./src/main/resources/github.properties
 ./src/main/resources/verify.properties
+
+./storage/*

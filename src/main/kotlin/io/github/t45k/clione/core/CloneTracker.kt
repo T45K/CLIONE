@@ -37,9 +37,9 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
         git.checkout(newCommitHash)
         val (newCloneSets: CloneSets, newIdCloneMap: IdCloneMap) = cloneDetector.execute(newChangedFiles, CloneStatus.ADD)
         val newFileClonesMap: FileClonesMap = newIdCloneMap.values.groupBy { it.fileName }
-        logger.info("[START]\tNew revision: $newCommitHash")
+        logger.info("[END]\tNew revision: $newCommitHash")
 
-        logger.info("[END]\tOld revision: $oldCommitHash")
+        logger.info("[START]\tOld revision: $oldCommitHash")
         git.checkout(oldCommitHash)
         val (oldCloneSets: CloneSets, oldIdCloneMap: IdCloneMap) = cloneDetector.execute(oldChangedFiles, CloneStatus.DELETE)
         val oldFileClonesMap: FileClonesMap = oldIdCloneMap.values.groupBy { it.fileName }

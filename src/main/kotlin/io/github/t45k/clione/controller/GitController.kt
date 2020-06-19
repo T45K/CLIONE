@@ -104,7 +104,7 @@ class GitController(private val git: Git) {
 
         val oldRawText: RawText = readBlob(entry.oldId)
         val newRawText: RawText = readBlob(entry.newId)
-        val editList: EditList = DiffAlgorithm.getAlgorithm(DiffAlgorithm.SupportedAlgorithm.HISTOGRAM)
+        val editList: EditList = DiffAlgorithm.getAlgorithm(DiffAlgorithm.SupportedAlgorithm.MYERS)
             .diff(RawTextComparator.DEFAULT, oldRawText, newRawText)
 
         if (editList.isEmpty()) {

@@ -13,5 +13,5 @@ data class LazyCloneInstance(
     var status: CloneStatus,
     val tokenSequence: List<String> = emptyList()) {
     fun setId(id: Int): CloneInstance =
-        CloneInstance(fileName, startLine, endLine, id, status)
+        CloneInstance(fileName, startLine, endLine, id, status, tokenSequence)
 }

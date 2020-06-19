@@ -1,7 +1,7 @@
 package io.github.t45k.clione.controller.cloneDetector.sourcerercc
 
 import com.mondego.indexbased.SearchManager
-import io.github.t45k.clione.controller.cloneDetector.CloneDetectorController
+import io.github.t45k.clione.controller.cloneDetector.AbstractCloneDetectorController
 import io.github.t45k.clione.core.RunningConfig
 import io.github.t45k.clione.entity.BagOfToken
 import io.github.t45k.clione.entity.CloneInstance
@@ -19,7 +19,7 @@ import java.nio.file.Path
 import kotlin.math.absoluteValue
 import kotlin.streams.asSequence
 
-class SourcererCCController(private val sourceCodePath: Path, private val config: RunningConfig) : CloneDetectorController {
+class SourcererCCController(sourceCodePath: Path, config: RunningConfig) : AbstractCloneDetectorController(sourceCodePath, config) {
 
     companion object {
         private const val SCC_PROPERTY_LOCATION = "./src/main/resources/sourcerer-cc.properties"

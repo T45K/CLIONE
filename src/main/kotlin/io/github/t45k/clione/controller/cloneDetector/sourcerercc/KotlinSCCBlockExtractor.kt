@@ -1,7 +1,9 @@
 package io.github.t45k.clione.controller.cloneDetector.sourcerercc
 
-import io.github.t45k.clione.core.tokenizer.KotlinTokenizer
+import io.github.t45k.clione.core.tokenizer.JDTTokenizer
 import io.github.t45k.clione.entity.CloneStatus
+import org.eclipse.jdt.core.ToolFactory
+import org.eclipse.jdt.core.compiler.ITerminalSymbols
 import java.nio.file.Path
 import java.util.ArrayDeque
 import java.util.Deque
@@ -9,23 +11,36 @@ import java.util.Deque
 class KotlinSCCBlockExtractor : SCCBlockExtractor {
 
     /**
-     * Extract clone candidates by Brute Force...
+     * Extract clone candidates by using JDTTokenizer
      */
     override fun extract(code: String, filePath: Path, cloneStatus: CloneStatus): List<Pair<LazyCloneInstance, String>> {
-        var loc = 1
         val leftBraceQueue: Deque<Pair<Int, Int>> = ArrayDeque() // position and line number
         val candidates: MutableList<Pair<LazyCloneInstance, String>> = mutableListOf()
-        code.forEachIndexed { index, c ->
-            when (c) {
-                '\n' -> loc++
-                '{' -> leftBraceQueue.add(index to loc)
-                '}' -> {
-                    val (position, lineNumber) = leftBraceQueue.pop()
-                    val block: String = code.substring(position, index + 1)
-                    candidates.add(LazyCloneInstance(filePath.toString(), lineNumber, loc, cloneStatus, KotlinTokenizer().tokenize(block)) to block)
-                }
+
+        ToolFactory
+            .createScanner(false, false, true, true)
+            .also { it.source = code.toCharArray() }
+            .let { scanner ->
+                generateSequence { 0 }
+                    .map { scanner.nextToken }
+                    .takeWhile { it != ITerminalSymbols.TokenNameEOF }
+                    .forEach {
+                        if (it == ITerminalSymbols.TokenNameLBRACE) {
+                            val startPosition: Int = scanner.currentTokenStartPosition
+                            leftBraceQueue.push(startPosition to scanner.getLineNumber(startPosition))
+                        } else if (it == ITerminalSymbols.TokenNameRBRACE) {
+                            val endPosition: Int = scanner.currentTokenEndPosition
+                            val endLine: Int = scanner.getLineNumber(endPosition)
+                            val (startPosition, startLine) = leftBraceQueue.pop()
+                            if (endLine - startLine + 1 <= 3) {
+                                return@forEach
+                            }
+                            val tokenSequence: List<String> = JDTTokenizer().tokenize(code.substring(startPosition, endPosition + 1))
+                            candidates.add(LazyCloneInstance(filePath.toString(), startLine, endLine, cloneStatus, tokenSequence) to
+                                tokenSequence.joinToString(" "))
+                        }
+                    }
             }
-        }
 
         return candidates
     }

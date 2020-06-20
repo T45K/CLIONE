@@ -20,7 +20,7 @@ class JavaSCCBlockExtractor : SCCBlockExtractor {
             .apply { this.setSource(code.toCharArray()) }
             .run { this.createAST(NullProgressMonitor()) as CompilationUnit }
             .let { compilationUnit: CompilationUnit ->
-                BlockExtractVisitor()
+                BlockExtractVisitor(compilationUnit)
                     .apply { compilationUnit.accept(this) }
                     .blocks
                     .map {
@@ -30,15 +30,19 @@ class JavaSCCBlockExtractor : SCCBlockExtractor {
                     }
             }
 
-    private class BlockExtractVisitor : ASTVisitor() {
+    private class BlockExtractVisitor(private val compilationUnit: CompilationUnit) : ASTVisitor() {
         val blocks: MutableList<Block> = mutableListOf()
 
         override fun visit(node: Block?): Boolean {
-            if (node!!.statements().isEmpty()) {
+            if (node!!.statements().isEmpty() || !node.isMoreThanThreeLines()) {
                 return false
             }
             blocks.add(node)
             return super.visit(node)
         }
+
+        private fun Block.isMoreThanThreeLines() =
+            compilationUnit.getLineNumber(this.startPosition + this.length - 1) -
+                compilationUnit.getLineNumber(this.startPosition) > 3
     }
 }

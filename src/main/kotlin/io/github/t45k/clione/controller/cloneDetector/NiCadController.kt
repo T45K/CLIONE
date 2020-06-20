@@ -37,7 +37,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractClo
         .resolve("${sourceCodePath.fileName}_blocks-blind-clones-0.30.xml")
     private val cloneCandidateDataPath: Path = sourceCodePath.parent
         .resolve("${sourceCodePath.fileName}_blocks.xml")
-    private val tokenizer: Tokenizer = Tokenizer.create(config.lang)
+    private val tokenizer: Tokenizer = config.lang.tokenizer
 
     /**
      * Execute NiCad clone detector.

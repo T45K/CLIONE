@@ -69,8 +69,7 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) : Abstr
             .map { it.toRealPath() }
             .flatMap {
                 val status = if (changedFiles.contains(it.toString())) initialCloneStatus else CloneStatus.STABLE
-                // TODO other lang
-                JavaSCCBlockExtractor().extract(Files.readString(it), it, status).asSequence()
+                config.lang.blockExtractor.extract(Files.readString(it), it, status).asSequence()
             }
             .mapIndexed { index, (candidate, block) -> (index + 1 to candidate.setId(index)) to block.toBagOfToken() }
             .fold(mutableMapOf<Int, CloneInstance>() to mutableListOf<BagOfToken>()) { acc, (indexedCloneInstance: Pair<Int, CloneInstance>, bagOfToken: BagOfToken) ->

@@ -3,7 +3,6 @@ package io.github.t45k.clione.controller.cloneDetector.sourcerercc
 import io.github.t45k.clione.entity.CloneStatus
 import java.nio.file.Path
 
-// TODO implementation of other languages
 interface SCCBlockExtractor {
 
     /**

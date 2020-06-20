@@ -4,7 +4,7 @@ import com.google.common.annotations.VisibleForTesting
 import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.controller.cloneDetector.CloneDetectorController
-import io.github.t45k.clione.controller.cloneDetector.NiCadController
+import io.github.t45k.clione.controller.cloneDetector.create
 import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
@@ -30,7 +30,7 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
         logger.info("[START]\tClone Tracking on ${pullRequest.getRepositoryFullName()}/${pullRequest.getNumber()}")
 
         val (oldCommitHash: String, newCommitHash: String) = pullRequest.getComparisonCommits()
-        val cloneDetector: CloneDetectorController = NiCadController(sourceCodePath, config)
+        val cloneDetector: CloneDetectorController = create(sourceCodePath, config)
         val (oldChangedFiles: Set<String>, newChangedFiles: Set<String>) = git.findChangedFiles(oldCommitHash, newCommitHash)
 
         logger.info("[START]\tNew revision: $newCommitHash")

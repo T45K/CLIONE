@@ -26,7 +26,7 @@ internal class SourcererCCControllerTest {
         git.checkout(OLD_COMMIT_HASH)
         val (cloneSets: CloneSets, _) = cloneDetector.execute(changedFiles, CloneStatus.DELETE)
 
-        assertEquals(listOf(setOf(1, 4)), cloneSets)
+        assertEquals(listOf(setOf(1, 2)), cloneSets)
 
         git.deleteRepo()
     }

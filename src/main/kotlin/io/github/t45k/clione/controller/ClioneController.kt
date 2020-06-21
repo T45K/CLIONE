@@ -3,8 +3,8 @@ package io.github.t45k.clione.controller
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.t45k.clione.core.CloneTracker
-import io.github.t45k.clione.core.Language
 import io.github.t45k.clione.core.RunningConfig
+import io.github.t45k.clione.core.generateConfig
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.github.GitHubAuthenticator
 import io.github.t45k.clione.util.DigestUtil
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.servlet.view.RedirectView
+import java.nio.file.Files
 import java.util.ResourceBundle
 import javax.servlet.http.HttpServletRequest
 
@@ -31,6 +32,8 @@ class ClioneApiController {
         private val githubWebhookSecret: String = ResourceBundle.getBundle("verify")
             ?.getString("GITHUB_WEBHOOK_SECRET")
             ?: throw NoPropertyFileExistsException("verify.properties does not exist")
+
+        private const val CONFIGURATION_LOCATION = ".clione/config.toml"
     }
 
     @Autowired
@@ -57,9 +60,14 @@ class ClioneApiController {
         val pullRequestNumber: Int = json["number"].asInt()
         val (pullRequest: PullRequestController, token: String) = GitHubAuthenticator.authenticate(json)
         val git: GitController = GitController.clone(repositoryFullName, token, pullRequestNumber)
+        val config: RunningConfig = if (Files.exists(git.getProjectPath().resolve(CONFIGURATION_LOCATION))) {
+            generateConfig(Files.readString(git.getProjectPath().resolve(CONFIGURATION_LOCATION)))
+        } else {
+            RunningConfig()
+        }
 
         runCatching {
-            val cloneTracker = CloneTracker(git, pullRequest, RunningConfig("src", Language.JAVA))
+            val cloneTracker = CloneTracker(git, pullRequest, config)
             val (oldInconsistentChangedCloneSets, newInconsistentChangedCloneSets) = cloneTracker.track()
             pullRequest.comment(oldInconsistentChangedCloneSets)
         }.onFailure {

@@ -7,12 +7,20 @@ import io.github.t45k.clione.core.tokenizer.JDTTokenizer
 import io.github.t45k.clione.core.tokenizer.Tokenizer
 
 data class RunningConfig(
-    val infix: String,
-    val lang: Language = Language.JAVA,
-    val cloneDetector: CloneDetector = CloneDetector.SOURCERERCC,
-    val granularity: Granularity = Granularity.BLOCK,
-    val similarity: Int = 8
-)
+    val infix: String = DEFAULT_INFIX,
+    val lang: Language = DEFAULT_LANG,
+    val cloneDetector: CloneDetector = DEFAULT_CLONE_DETECTOR,
+    val granularity: Granularity = DEFAULT_GRANULARITY,
+    val similarity: Int = DEFAULT_SIMILARITY
+) {
+    companion object {
+        const val DEFAULT_INFIX = "src"
+        val DEFAULT_LANG = Language.JAVA
+        val DEFAULT_CLONE_DETECTOR = CloneDetector.SOURCERERCC
+        val DEFAULT_GRANULARITY = Granularity.BLOCK
+        const val DEFAULT_SIMILARITY = 8
+    }
+}
 
 enum class Language(
     private val string: String,

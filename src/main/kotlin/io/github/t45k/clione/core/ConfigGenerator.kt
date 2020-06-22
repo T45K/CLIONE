@@ -5,6 +5,7 @@ import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_CLONE_DETECTOR
 import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_GRANULARITY
 import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_INFIX
 import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_LANG
+import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_SIMILARITY
 import io.github.t45k.clione.entity.InvalidConfigSpecifiedException
 
 fun generateConfig(input: String): RunningConfig {
@@ -14,7 +15,7 @@ fun generateConfig(input: String): RunningConfig {
         toml.getLang(),
         toml.getCloneDetector(),
         toml.getGranularity(),
-        toml.getLong("similarity").toInt()
+        toml.getLong("similarity")?.toInt() ?: DEFAULT_SIMILARITY
     )
 }
 

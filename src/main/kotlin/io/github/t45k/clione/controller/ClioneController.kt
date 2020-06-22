@@ -59,10 +59,11 @@ class ClioneApiController {
 
         val pullRequestNumber: Int = json["number"].asInt()
         val (pullRequest: PullRequestController, token: String) = GitHubAuthenticator.authenticate(json)
-        val git: GitController = GitController.clone(repositoryFullName, token, pullRequestNumber)
+        val git: GitController = GitController.clone(repositoryFullName, token, pullRequestNumber, pullRequest.headCommitHash)
         val config: RunningConfig = if (Files.exists(git.getProjectPath().resolve(CONFIGURATION_LOCATION))) {
             generateConfig(Files.readString(git.getProjectPath().resolve(CONFIGURATION_LOCATION)))
         } else {
+            logger.info("$repositoryFullName doesn't have config.toml")
             git.deleteRepo()
             return
         }

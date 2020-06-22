@@ -33,7 +33,7 @@ class GitController(private val git: Git) {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-        fun clone(repositoryFullName: String, token: String, number: Int): GitController =
+        fun clone(repositoryFullName: String, token: String, number: Int, commitHash: String): GitController =
             Observable.just(
                 try {
                     Git.cloneRepository()
@@ -45,7 +45,9 @@ class GitController(private val git: Git) {
                 } catch (e: JGitInternalException) {
                     FileRepository("storage/${repositoryFullName}_$number/.git")
                         .run { Git(this) }
-                }.run { GitController(this) }
+                }.run {
+                    GitController(this).apply { this.checkout(commitHash) }
+                }
             )
                 .doOnSubscribe { logger.info("[START]\tclone $repositoryFullName") }
                 .doOnComplete { logger.info("[END]\tclone $repositoryFullName") }

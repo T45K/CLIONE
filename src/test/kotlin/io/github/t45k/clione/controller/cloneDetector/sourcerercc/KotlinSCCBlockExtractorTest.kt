@@ -10,54 +10,106 @@ internal class KotlinSCCBlockExtractorTest {
     @Test
     fun test() {
         val code =
-            """package io.github.t45k.clione.controller.cloneDetector.sourcerercc
+            """package io.github.t45k.clione.controller
 
-import io.github.t45k.clione.core.tokenizer.JDTTokenizer
+import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneStatus
-import org.eclipse.jdt.core.ToolFactory
-import org.eclipse.jdt.core.compiler.ITerminalSymbols
-import java.nio.file.Path
-import java.util.ArrayDeque
-import java.util.Deque
+import org.kohsuke.github.GHPullRequest
+import org.kohsuke.github.GHPullRequestFileDetail
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import kotlin.math.max
+import kotlin.math.min
 
-class KotlinSCCBlockExtractor : SCCBlockExtractor {
+class PullRequestController(private val pullRequest: GHPullRequest) {
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    }
+
+    private val changedFiles: Map<String, List<GHPullRequestFileDetail>> = pullRequest.listFiles().toList().groupBy { it.filename }
+    val headCommitHash: String = pullRequest.head.sha
 
     /**
-     * Extract clone candidates by using JDTTokenizer
+     * Comment to the Pull Request to notify inconsistent changes of clone sets.
+     * Notice:
      */
-    override fun extract(code: String, filePath: Path, cloneStatus: CloneStatus): List<Pair<LazyCloneInstance, String>> {
-        val leftBraceQueue: Deque<Pair<Int, Int>> = ArrayDeque() // position and line number
-        val candidates: MutableList<Pair<LazyCloneInstance, String>> = mutableListOf()
+    fun comment(inconsistentChangedCloneSets: List<List<CloneInstance>>) {
+        logger.info("[START]\tComment about")
+        for (newInconsistentChangedClones in inconsistentChangedCloneSets) {
+            val inconsistentChangedClone = newInconsistentChangedClones.find { it.status == CloneStatus.MODIFY }
+                ?: continue
 
-        ToolFactory
-            .createScanner(false, false, true, true)
-            .also { it.source = code.toCharArray() }
-            .let { scanner ->
-                generateSequence { 0 }
-                    .map { scanner.nextToken }
-                    .takeWhile { it != ITerminalSymbols.TokenNameEOF }
-                    .forEach {
-                        if (it == ITerminalSymbols.TokenNameLBRACE) {
-                            val startPosition: Int = scanner.currentTokenStartPosition
-                            leftBraceQueue.add(startPosition to scanner.getLineNumber(startPosition))
-                        }else if (it == ITerminalSymbols.TokenNameRBRACE) {
-                            val endPosition: Int = scanner.currentTokenEndPosition
-                            val endLine: Int = scanner.getLineNumber(endPosition)
-                            val (startPosition, startLine) = leftBraceQueue.pop()
-                            if (endLine - startLine + 1 <= 3) {
-                                return@forEach
-                            }
-                            val tokenSequence: List<String> = JDTTokenizer().tokenize(code.substring(startPosition, endPosition + 1))
-                            candidates.add(LazyCloneInstance(filePath.toString(), startLine, endLine, cloneStatus, tokenSequence) to
-                                tokenSequence.joinToString(" "))
-                        }
-                    }
+            val stableClones: List<CloneInstance> = newInconsistentChangedClones.filter { it.status == CloneStatus.STABLE }
+
+            val form = if (stableClones.size == 1) {
+                "fragment is"
+            } else {
+                "fragments are"
             }
 
-        return candidates
+            val infix: Regex = "storage/[^/]+/[^/]+/".toRegex()
+            val fileName = infix.split(inconsistentChangedClone.fileName)[1]
+            val detail: GHPullRequestFileDetail = (changedFiles[fileName] ?: error(""))[0]
+
+            val multiLine = "\\+([0-9]+,[0-9]+)\\s".toRegex().findAll(detail.patch)
+                .map { it.value }
+                .map { it.substring(1, it.length - 1) }
+                .map { it.split(",") }
+                .map { it[0].toInt() to (it[0].toInt() + it[1].toInt() - 1) }
+                .filterNot { it.second < inconsistentChangedClone.startLine || inconsistentChangedClone.endLine < it.first }
+                .map { max(it.first, inconsistentChangedClone.startLine) to min(it.second, inconsistentChangedClone.endLine) }
+                .toList()
+
+            val clonePlaces: String = stableClones.joinToString("\n") { " { } " }
+
+            val body = ""${'"'}In this Pull Request, this code fragment in 
+            |
+            |
+            |
+            |""${'"'}.trimMargin()
+
+            logger.info("Comment is\n")
+
+            pullRequest.createMultiLineReviewComment(body, pullRequest.head.sha,
+                fileName, multiLine[0].first, multiLine[0].second)
+            println()
+        }
+        logger.info("[END]\tComment about {  } ")
     }
+
+    fun errorComment() {
+        pullRequest.comment("Oops! Something is matter.")
+    }
+
+    /**
+     * Return base commit hash and head of the branch of the pull request.
+     */
+    fun getComparisonCommits(): Pair<String, String> = pullRequest.base.sha to pullRequest.head.sha
+
+    /**
+     * Return GitHub Url of the pull request file base
+     * example: https://github.com/T45k/Clione/blob/master/
+     */
+    fun getFileUrlBase(): String =
+        "https://github.com/"
+
+    /**
+     * Whether the pull request was opened from forked repository
+     */
+    private fun isPullRequestWithFork(): Boolean = pullRequest.head.label.contains(":")
+
+    private fun getBranchName(): String =
+        if (isPullRequestWithFork()) {
+            pullRequest.head.label.substringAfter(":")
+        } else {
+            pullRequest.head.label
+        }
+
+    fun getRepositoryFullName(): String = pullRequest.repository.fullName
+    fun getNumber(): Int = pullRequest.number
 }
 """
-        assertEquals(6, KotlinSCCBlockExtractor().extract(code, "".toPath(), CloneStatus.STABLE).size)
+        val blocks: List<Pair<LazyCloneInstance, String>> = KotlinSCCBlockExtractor().extract(code, "".toPath(), CloneStatus.STABLE)
+        assertEquals(3, blocks.size)
     }
 }

@@ -6,7 +6,7 @@ import org.eclipse.jdt.core.compiler.ITerminalSymbols
 class JDTTokenizer : Tokenizer {
     override fun tokenize(contents: String): List<String> =
         ToolFactory
-            .createScanner(false, false, true, true)
+            .createScanner(false, false, true, "14", "14", true)
             .also { it.source = contents.toCharArray() }
             .let { scanner ->
                 generateSequence { 0 }

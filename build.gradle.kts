@@ -5,6 +5,7 @@ plugins {
     id("io.spring.dependency-management") version "1.0.9.RELEASE"
     kotlin("jvm") version "1.3.71"
     kotlin("plugin.spring") version "1.3.71"
+    application
 }
 
 group = "io.github.t45k"
@@ -24,6 +25,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("commons-codec:commons-codec:1.14")
     implementation("com.auth0:java-jwt:3.10.2")
+    implementation("com.google.code.gson:gson:2.8.6")
     implementation(fileTree("./lib/github-api-1.113-SNAPSHOT.jar"))
     implementation(fileTree("./lib/github-api-1.113-SNAPSHOT-jar-with-dependencies.jar"))
     implementation(fileTree("./lib/indexbased.SearchManager.jar"))
@@ -47,6 +49,10 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 */
+
+application {
+    mainClassName = "io.github.t45k.clione.ClioneApplicationKt"
+}
 
 tasks.withType<KotlinCompile> {
     kotlinOptions {

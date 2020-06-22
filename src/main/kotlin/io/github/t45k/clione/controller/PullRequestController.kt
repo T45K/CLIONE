@@ -23,11 +23,16 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
      */
     fun comment(inconsistentChangedCloneSets: List<List<CloneInstance>>) {
         logger.info("[START]\tComment about ${getRepositoryFullName()}/${pullRequest.number}")
-        for (newInconsistentChangedClones in inconsistentChangedCloneSets) {
-            val inconsistentChangedClone = newInconsistentChangedClones.find { it.status == CloneStatus.MODIFY }
+
+        if (inconsistentChangedCloneSets.isEmpty()) {
+            pullRequest.comment("Neither inconsistent changed nor new clone sets were detected.\nGood job! ")
+        }
+
+        for (inconsistentChangedClones in inconsistentChangedCloneSets) {
+            val inconsistentChangedClone = inconsistentChangedClones.find { it.status == CloneStatus.MODIFY }
                 ?: continue
 
-            val stableClones: List<CloneInstance> = newInconsistentChangedClones.filter { it.status == CloneStatus.STABLE }
+            val stableClones: List<CloneInstance> = inconsistentChangedClones.filter { it.status == CloneStatus.STABLE }
 
             val form = if (stableClones.size == 1) {
                 "fragment is"

@@ -24,6 +24,7 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("commons-codec:commons-codec:1.14")
     implementation("com.auth0:java-jwt:3.10.2")
+    implementation("com.google.code.gson:gson:2.8.6")
     implementation(fileTree("./lib/github-api-1.113-SNAPSHOT.jar"))
     implementation(fileTree("./lib/github-api-1.113-SNAPSHOT-jar-with-dependencies.jar"))
     implementation(fileTree("./lib/indexbased.SearchManager.jar"))

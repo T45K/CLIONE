@@ -34,7 +34,7 @@ dependencies {
     implementation("io.reactivex.rxjava3:rxkotlin:3.0.0")
     implementation("com.github.kusumotolab:sdl4j:0.4.0")
     implementation("org.jgrapht:jgrapht-core:1.4.0")
-    implementation("org.eclipse.jdt:org.eclipse.jdt.core:3.21.0")
+    implementation("org.eclipse.jdt:org.eclipse.jdt.core:3.22.0")
     implementation("com.moandjiezana.toml:toml4j:0.7.2")
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")

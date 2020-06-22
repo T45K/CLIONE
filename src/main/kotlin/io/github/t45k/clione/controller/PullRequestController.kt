@@ -14,7 +14,8 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     }
 
-    private val changedFiles = pullRequest.listFiles().toList().groupBy { it.filename }
+    private val changedFiles: Map<String, List<GHPullRequestFileDetail>> = pullRequest.listFiles().toList().groupBy { it.filename }
+    val headCommitHash: String = pullRequest.head.sha
 
     /**
      * Comment to the Pull Request to notify inconsistent changes of clone sets.
@@ -36,7 +37,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
 
             val infix: Regex = "storage/[^/]+/[^/]+/".toRegex()
             val fileName = infix.split(inconsistentChangedClone.fileName)[1]
-            val detail: GHPullRequestFileDetail = (changedFiles[fileName] ?: error(""))[0]!!
+            val detail: GHPullRequestFileDetail = (changedFiles[fileName] ?: error(""))[0]
 
             val multiLine = "\\+([0-9]+,[0-9]+)\\s".toRegex().findAll(detail.patch)
                 .map { it.value }

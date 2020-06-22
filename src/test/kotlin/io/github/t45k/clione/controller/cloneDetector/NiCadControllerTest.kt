@@ -19,8 +19,7 @@ internal class NiCadControllerTest {
 
     @Test
     fun test() {
-        val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", 0)
-        git.checkout(OLD_COMMIT_HASH)
+        val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", 0, OLD_COMMIT_HASH)
         val config = RunningConfig("src", Language.JAVA)
         val cloneDetector = NiCadController(git.getProjectPath().resolve(config.infix), config)
 

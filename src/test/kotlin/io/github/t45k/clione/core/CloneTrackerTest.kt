@@ -21,7 +21,7 @@ internal class CloneTrackerTest {
     @Test
     fun test() {
         val config = RunningConfig("src", Language.JAVA)
-        val git = GitController.clone(REPOSITORY_FULL_NAME, "", 0)
+        val git = GitController.clone(REPOSITORY_FULL_NAME, "", 0, NEW_COMMIT_HASH)
         val pullRequest: PullRequestController = mockk<PullRequestController>()
             .also { every { it.getComparisonCommits() } returns (OLD_COMMIT_HASH to NEW_COMMIT_HASH) }
             .also { every { it.getRepositoryFullName() } returns REPOSITORY_FULL_NAME }
@@ -29,7 +29,6 @@ internal class CloneTrackerTest {
         val cloneDetector = NiCadController(git.getProjectPath().resolve(config.infix), config)
         val changedFile = setOf("./storage/T45K/trial_0/src/Sample.java", git.getProjectPath().resolve("src/Sample.java").toString())
 
-        git.checkout(NEW_COMMIT_HASH)
         val newFileCache: MutableMap<String, List<String>> = mutableMapOf()
         val (_, newIdCloneMap) = cloneDetector.collectResult(changedFile, CloneStatus.ADD, newFileCache)
         cloneDetector.parseCandidateXML(newFileCache, changedFile).forEach { candidate -> newIdCloneMap.computeIfAbsent(candidate.id) { candidate } }

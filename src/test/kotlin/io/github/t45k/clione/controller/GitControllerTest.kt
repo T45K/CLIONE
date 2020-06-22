@@ -16,7 +16,7 @@ internal class GitControllerTest {
         private const val NEW_COMMIT_HASH = "646853e1ddabab861847eca04e72cccfc76963e3"
     }
 
-    private val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", 0)
+    private val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", 0, NEW_COMMIT_HASH)
 
     @Test
     fun testCloneSuccess() {

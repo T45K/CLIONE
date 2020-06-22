@@ -18,12 +18,11 @@ internal class SourcererCCControllerTest {
 
     @Test
     fun test() {
-        val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", 0)
+        val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", 0, OLD_COMMIT_HASH)
         val config = RunningConfig("src", Language.JAVA)
         val cloneDetector = SourcererCCController(git.getProjectPath().resolve(config.infix), config)
 
         val changedFiles: Set<String> = setOf("./storage/T45K/trial_0/src/Sample.java".toRealPath().toString())
-        git.checkout(OLD_COMMIT_HASH)
         val (cloneSets: CloneSets, _) = cloneDetector.execute(changedFiles, CloneStatus.DELETE)
 
         assertEquals(listOf(setOf(1, 2)), cloneSets)

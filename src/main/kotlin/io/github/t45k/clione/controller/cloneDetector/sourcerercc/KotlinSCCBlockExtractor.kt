@@ -38,9 +38,9 @@ class KotlinSCCBlockExtractor : SCCBlockExtractor {
                 } else if (it.type == "RCURL" && !isInString) {
                     val (startPosition, startLine) = leftBraceQueue.pop()
                     if (currentLoC - startLine > 3) {
-                        val tokenSequence: List<String> = KotlinTokenizer().tokenize(code.substring(startPosition, currentPosition + 2))
+                        val tokenSequence: List<String> = KotlinTokenizer().tokenize(code.substring(startPosition, currentPosition + 1))
                         candidates.add(LazyCloneInstance(filePath.toString(), startLine, currentLoC, cloneStatus, tokenSequence) to
-                            tokenSequence.joinToString { " " })
+                            tokenSequence.joinToString(" "))
                     }
                 }
 

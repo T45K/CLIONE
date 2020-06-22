@@ -16,7 +16,7 @@ class JavaSCCBlockExtractor : SCCBlockExtractor {
      * Extract clone candidates by using JDT AST.
      */
     override fun extract(code: String, filePath: Path, cloneStatus: CloneStatus): List<Pair<LazyCloneInstance, String>> =
-        ASTParser.newParser(AST.JLS13)
+        ASTParser.newParser(AST.JLS14)
             .apply { this.setSource(code.toCharArray()) }
             .run { this.createAST(NullProgressMonitor()) as CompilationUnit }
             .let { compilationUnit: CompilationUnit ->

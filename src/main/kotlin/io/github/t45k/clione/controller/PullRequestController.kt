@@ -2,6 +2,7 @@ package io.github.t45k.clione.controller
 
 import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneStatus
+import org.kohsuke.github.GHCheckRun
 import org.kohsuke.github.GHPullRequest
 import org.kohsuke.github.GHPullRequestFileDetail
 import org.kohsuke.github.GHRepository
@@ -13,6 +14,7 @@ import kotlin.math.min
 class PullRequestController(private val pullRequest: GHPullRequest, private val repository: GHRepository) {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+        private const val APP_NAME = "CLIONE"
     }
 
     private val changedFiles: Map<String, List<GHPullRequestFileDetail>> = pullRequest.listFiles().toList().groupBy { it.filename }
@@ -100,4 +102,13 @@ class PullRequestController(private val pullRequest: GHPullRequest, private val 
         } else {
             pullRequest.head.label
         }
+
+    fun sendInProgressStatus() = sendCheckRunStatus(GHCheckRun.Status.IN_PROGRESS)
+    fun sendCompletedStatus() = sendCheckRunStatus(GHCheckRun.Status.COMPLETED)
+
+    @Suppress("DEPRECATION")
+    private fun sendCheckRunStatus(status: GHCheckRun.Status) =
+        repository.createCheckRun(APP_NAME, headCommitHash)
+            .withStatus(status)
+            .create()
 }

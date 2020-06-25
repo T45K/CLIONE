@@ -44,7 +44,6 @@ class ClioneApiController {
 
     @PostMapping("/event_handler")
     fun postEventHandler(@RequestBody rawRequestBody: String) {
-        logger.info("Event was received")
         if (!verifyWebhookSignature(rawRequestBody)) {
             return
         }
@@ -55,7 +54,7 @@ class ClioneApiController {
         }
 
         val repositoryFullName = json["repository"]["full_name"].asText()
-        logger.info("---- received pull request open from $repositoryFullName")
+        logger.info("Received pull request open from $repositoryFullName")
 
         val pullRequestNumber: Int = json["number"].asInt()
         val (pullRequest: PullRequestController, token: String) = GitHubAuthenticator.authenticate(json)

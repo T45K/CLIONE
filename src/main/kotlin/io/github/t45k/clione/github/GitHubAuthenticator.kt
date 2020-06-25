@@ -8,6 +8,7 @@ import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.util.DigestUtil
 import io.github.t45k.clione.util.minutesAfter
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.kohsuke.github.GHCheckRun
 import org.kohsuke.github.GitHub
 import org.kohsuke.github.GitHubBuilder
 import java.security.Security
@@ -33,6 +34,11 @@ class GitHubAuthenticator {
                 .withAppInstallationToken(token)
                 .build()
                 .getRepository(json["repository"]["full_name"].asText())
+                .apply { // this is experimental
+                    this.createCheckRun("CLIONE", this.getPullRequest(json["number"].asInt()).head.sha)
+                        .withStatus(GHCheckRun.Status.IN_PROGRESS)
+                        .create()
+                }
                 .getPullRequest(json["number"].asInt())
                 .run { PullRequestController(this) } to token
         }

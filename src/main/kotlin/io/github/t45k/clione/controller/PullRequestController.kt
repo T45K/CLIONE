@@ -4,25 +4,28 @@ import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneStatus
 import org.kohsuke.github.GHPullRequest
 import org.kohsuke.github.GHPullRequestFileDetail
+import org.kohsuke.github.GHRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.math.max
 import kotlin.math.min
 
-class PullRequestController(private val pullRequest: GHPullRequest) {
+class PullRequestController(private val pullRequest: GHPullRequest, private val repository: GHRepository) {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     }
 
     private val changedFiles: Map<String, List<GHPullRequestFileDetail>> = pullRequest.listFiles().toList().groupBy { it.filename }
     val headCommitHash: String = pullRequest.head.sha
+    val number: Int = pullRequest.number
+    private val fullName: String = pullRequest.repository.fullName
 
     /**
      * Comment to the Pull Request to notify inconsistent changes of clone sets.
      * Notice:
      */
     fun comment(inconsistentChangedCloneSets: List<List<CloneInstance>>) {
-        logger.info("[START]\tComment about ${getRepositoryFullName()}/${pullRequest.number}")
+        logger.info("[START]\tComment about $fullName/${pullRequest.number}")
 
         if (inconsistentChangedCloneSets.isEmpty()) {
             pullRequest.comment("Neither inconsistent changed nor new clone sets were detected.\nGood job! ")
@@ -67,7 +70,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
                 fileName, multiLine[0].first, multiLine[0].second)
             println()
         }
-        logger.info("[END]\tComment about ${getRepositoryFullName()}/${pullRequest.number}")
+        logger.info("[END]\tComment about $fullName/${pullRequest.number}")
     }
 
     fun errorComment() {
@@ -97,7 +100,4 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
         } else {
             pullRequest.head.label
         }
-
-    fun getRepositoryFullName(): String = pullRequest.repository.fullName
-    fun getNumber(): Int = pullRequest.number
 }

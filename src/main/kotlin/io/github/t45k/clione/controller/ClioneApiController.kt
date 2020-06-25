@@ -56,9 +56,8 @@ class ClioneApiController {
         val repositoryFullName = json["repository"]["full_name"].asText()
         logger.info("Received pull request open from $repositoryFullName")
 
-        val pullRequestNumber: Int = json["number"].asInt()
         val (pullRequest: PullRequestController, token: String) = GitHubAuthenticator.authenticate(json)
-        val git: GitController = GitController.clone(repositoryFullName, token, pullRequestNumber, pullRequest.headCommitHash)
+        val git: GitController = GitController.clone(repositoryFullName, token, pullRequest)
         val config: RunningConfig = if (Files.exists(git.getProjectPath().resolve(CONFIGURATION_LOCATION))) {
             generateConfig(Files.readString(git.getProjectPath().resolve(CONFIGURATION_LOCATION)))
         } else {

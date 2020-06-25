@@ -8,7 +8,6 @@ import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.util.DigestUtil
 import io.github.t45k.clione.util.minutesAfter
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.kohsuke.github.GHCheckRun
 import org.kohsuke.github.GitHub
 import org.kohsuke.github.GitHubBuilder
 import java.security.Security
@@ -27,6 +26,13 @@ class GitHubAuthenticator {
         private val githubPrivateKey: RSAPrivateKey = DigestUtil.getRSAPrivateKeyFromPEMFileContents(bundle.getString("GITHUB_PRIVATE_KEY"))
         private val githubAppIdentifier: String = bundle.getString("GITHUB_APP_IDENTIFIER")
 
+        /**
+         * Authenticate GitHub App with json (from RequestBody).
+         *
+         * @param json JSON
+         *
+         * @return PullRequest information and token for 'git clone'
+         */
         fun authenticate(json: JsonNode): Pair<PullRequestController, String> {
             val token: String = authenticateApp()
                 .run { generateToken(this, json["installation"]["id"].asLong()) }
@@ -34,13 +40,7 @@ class GitHubAuthenticator {
                 .withAppInstallationToken(token)
                 .build()
                 .getRepository(json["repository"]["full_name"].asText())
-                .apply { // this is experimental
-                    this.createCheckRun("CLIONE", this.getPullRequest(json["number"].asInt()).head.sha)
-                        .withStatus(GHCheckRun.Status.IN_PROGRESS)
-                        .create()
-                }
-                .getPullRequest(json["number"].asInt())
-                .run { PullRequestController(this) } to token
+                .run { PullRequestController(this.getPullRequest(json["number"].asInt()), this) } to token
         }
 
         /**

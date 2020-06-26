@@ -5,13 +5,12 @@ import io.github.t45k.clione.entity.CloneStatus
 import org.kohsuke.github.GHCheckRun
 import org.kohsuke.github.GHPullRequest
 import org.kohsuke.github.GHPullRequestFileDetail
-import org.kohsuke.github.GHRepository
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.math.max
 import kotlin.math.min
 
-class PullRequestController(private val pullRequest: GHPullRequest, private val repository: GHRepository) {
+class PullRequestController(private val pullRequest: GHPullRequest) {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
         private const val APP_NAME = "CLIONE"
@@ -20,7 +19,7 @@ class PullRequestController(private val pullRequest: GHPullRequest, private val 
     private val changedFiles: Map<String, List<GHPullRequestFileDetail>> = pullRequest.listFiles().toList().groupBy { it.filename }
     val headCommitHash: String = pullRequest.head.sha
     val number: Int = pullRequest.number
-    private val fullName: String = pullRequest.repository.fullName
+    val fullName: String = pullRequest.repository.fullName
 
     /**
      * Comment to the Pull Request to notify inconsistent changes of clone sets.
@@ -108,7 +107,7 @@ class PullRequestController(private val pullRequest: GHPullRequest, private val 
 
     @Suppress("DEPRECATION")
     private fun sendCheckRunStatus(status: GHCheckRun.Status) =
-        repository.createCheckRun(APP_NAME, headCommitHash)
+        pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
             .withStatus(status)
             .create()
 }

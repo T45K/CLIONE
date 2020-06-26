@@ -27,7 +27,7 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
     private val sourceCodePath: Path = git.getProjectPath().resolve(config.infix).toRealPath()
 
     fun track(): Pair<List<List<CloneInstance>>, List<List<CloneInstance>>> {
-        logger.info("[START]\tClone Tracking on ${pullRequest.getRepositoryFullName()}/${pullRequest.getNumber()}")
+        logger.info("[START]\tClone Tracking on ${pullRequest.fullName}/${pullRequest.number}")
 
         val (oldCommitHash: String, newCommitHash: String) = pullRequest.getComparisonCommits()
         val cloneDetector: CloneDetectorController = create(sourceCodePath, config)
@@ -47,7 +47,7 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
 
         mapClones(oldFileClonesMap, newFileClonesMap, oldChangedFiles, oldCommitHash, newCommitHash)
 
-        logger.info("[END]\tclone tracking on ${pullRequest.getNumber()}")
+        logger.info("[END]\tclone tracking on ${pullRequest.number}")
 
         return filterInconsistentChange(oldCloneSets, oldIdCloneMap) to filterInconsistentChange(newCloneSets, newIdCloneMap)
     }

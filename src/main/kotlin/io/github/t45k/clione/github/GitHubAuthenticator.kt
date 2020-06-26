@@ -36,11 +36,13 @@ class GitHubAuthenticator {
         fun authenticate(json: JsonNode): Pair<PullRequestController, String> {
             val token: String = authenticateApp()
                 .run { generateToken(this, json["installation"]["id"].asLong()) }
+
             return GitHubBuilder()
                 .withAppInstallationToken(token)
                 .build()
                 .getRepository(json["repository"]["full_name"].asText())
-                .run { PullRequestController(this.getPullRequest(json["number"].asInt()), this) } to token
+                .getPullRequest(json["number"].asInt())
+                .run { PullRequestController(this) } to token
         }
 
         /**

@@ -17,7 +17,7 @@ data class RunningConfig(
     companion object {
         const val DEFAULT_INFIX = "src"
         val DEFAULT_LANG = Language.JAVA
-        val DEFAULT_CLONE_DETECTOR = CloneDetector.SOURCERERCC
+        val DEFAULT_CLONE_DETECTOR = CloneDetector.NICAD
         val DEFAULT_GRANULARITY = Granularity.BLOCK
         const val DEFAULT_SIMILARITY = 8
     }

@@ -1,6 +1,7 @@
 package io.github.t45k.clione.controller
 
 import io.github.t45k.clione.entity.FileChangeType
+import io.github.t45k.clione.util.generatePRMock
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.AfterTest
@@ -16,7 +17,8 @@ internal class GitControllerTest {
         private const val NEW_COMMIT_HASH = "646853e1ddabab861847eca04e72cccfc76963e3"
     }
 
-    private val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", 0, NEW_COMMIT_HASH)
+    private val pullRequest: PullRequestController = generatePRMock(REPOSITORY_FULL_NAME, 0, NEW_COMMIT_HASH)
+    private val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", pullRequest)
 
     @Test
     fun testCloneSuccess() {

@@ -4,9 +4,8 @@ import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.controller.cloneDetector.NiCadController
 import io.github.t45k.clione.entity.CloneStatus
+import io.github.t45k.clione.util.generatePRMock
 import io.github.t45k.clione.util.toRealPath
-import io.mockk.every
-import io.mockk.mockk
 import org.junit.Test
 import kotlin.test.assertEquals
 
@@ -21,11 +20,8 @@ internal class CloneTrackerTest {
     @Test
     fun test() {
         val config = RunningConfig("src", Language.JAVA)
-        val git = GitController.clone(REPOSITORY_FULL_NAME, "", 0, NEW_COMMIT_HASH)
-        val pullRequest: PullRequestController = mockk<PullRequestController>()
-            .also { every { it.getComparisonCommits() } returns (OLD_COMMIT_HASH to NEW_COMMIT_HASH) }
-            .also { every { it.getRepositoryFullName() } returns REPOSITORY_FULL_NAME }
-            .also { every { it.getNumber() } returns 0 }
+        val pullRequest: PullRequestController = generatePRMock(REPOSITORY_FULL_NAME, 0, NEW_COMMIT_HASH, OLD_COMMIT_HASH)
+        val git = GitController.clone(REPOSITORY_FULL_NAME, "", pullRequest)
         val cloneDetector = NiCadController(git.getProjectPath().resolve(config.infix), config)
         val changedFile = setOf("./storage/T45K/trial_0/src/Sample.java", git.getProjectPath().resolve("src/Sample.java").toString())
 

@@ -44,7 +44,6 @@ class ClioneApiController {
 
     @PostMapping("/event_handler")
     fun postEventHandler(@RequestBody rawRequestBody: String) {
-        logger.info("Event was received")
         if (!verifyWebhookSignature(rawRequestBody)) {
             return
         }
@@ -55,11 +54,10 @@ class ClioneApiController {
         }
 
         val repositoryFullName = json["repository"]["full_name"].asText()
-        logger.info("---- received pull request open from $repositoryFullName")
+        logger.info("Received pull request open from $repositoryFullName")
 
-        val pullRequestNumber: Int = json["number"].asInt()
         val (pullRequest: PullRequestController, token: String) = GitHubAuthenticator.authenticate(json)
-        val git: GitController = GitController.clone(repositoryFullName, token, pullRequestNumber, pullRequest.headCommitHash)
+        val git: GitController = GitController.clone(repositoryFullName, token, pullRequest)
         val config: RunningConfig = if (Files.exists(git.getProjectPath().resolve(CONFIGURATION_LOCATION))) {
             generateConfig(Files.readString(git.getProjectPath().resolve(CONFIGURATION_LOCATION)))
         } else {
@@ -68,6 +66,7 @@ class ClioneApiController {
             return
         }
 
+        pullRequest.sendInProgressStatus()
         runCatching {
             val cloneTracker = CloneTracker(git, pullRequest, config)
             val (oldInconsistentChangedCloneSets, newInconsistentChangedCloneSets) = cloneTracker.track()
@@ -76,6 +75,7 @@ class ClioneApiController {
             logger.error(it.toString())
             pullRequest.errorComment()
         }
+        pullRequest.sendCompletedStatus()
 
         git.deleteRepo()
     }

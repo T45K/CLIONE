@@ -6,7 +6,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 internal class PullRequestControllerTest {
-    lateinit var pullRequestController: PullRequestController
+    private lateinit var pullRequestController: PullRequestController
 
     @BeforeTest
     fun setUp() {

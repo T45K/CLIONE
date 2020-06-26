@@ -26,9 +26,17 @@ class GitHubAuthenticator {
         private val githubPrivateKey: RSAPrivateKey = DigestUtil.getRSAPrivateKeyFromPEMFileContents(bundle.getString("GITHUB_PRIVATE_KEY"))
         private val githubAppIdentifier: String = bundle.getString("GITHUB_APP_IDENTIFIER")
 
+        /**
+         * Authenticate GitHub App with json (from RequestBody).
+         *
+         * @param json JSON
+         *
+         * @return PullRequest information and token for 'git clone'
+         */
         fun authenticate(json: JsonNode): Pair<PullRequestController, String> {
             val token: String = authenticateApp()
                 .run { generateToken(this, json["installation"]["id"].asLong()) }
+
             return GitHubBuilder()
                 .withAppInstallationToken(token)
                 .build()

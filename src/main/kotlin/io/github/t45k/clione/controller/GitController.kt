@@ -33,20 +33,20 @@ class GitController(private val git: Git) {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-        fun clone(repositoryFullName: String, token: String, number: Int, commitHash: String): GitController =
+        fun clone(repositoryFullName: String, token: String, pullRequest: PullRequestController): GitController =
             Observable.just(
                 try {
                     Git.cloneRepository()
                         .setURI("https://github.com/$repositoryFullName.git")
-                        .setDirectory(Path.of("storage", "${repositoryFullName}_$number").toFile())
+                        .setDirectory(Path.of("storage", "${repositoryFullName}_${pullRequest.number}").toFile())
                         .setCredentialsProvider(UsernamePasswordCredentialsProvider("token", token))
                         .setCloneAllBranches(true)
                         .call()
                 } catch (e: JGitInternalException) {
-                    FileRepository("storage/${repositoryFullName}_$number/.git")
+                    FileRepository("storage/${repositoryFullName}_${pullRequest.number}/.git")
                         .run { Git(this) }
                 }.run {
-                    GitController(this).apply { this.checkout(commitHash) }
+                    GitController(this).apply { this.checkout(pullRequest.headCommitHash) }
                 }
             )
                 .doOnSubscribe { logger.info("[START]\tclone $repositoryFullName") }

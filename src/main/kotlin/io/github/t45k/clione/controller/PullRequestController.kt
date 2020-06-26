@@ -112,6 +112,6 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
     fun sendCompletedStatus() =
         pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
             .withStatus(GHCheckRun.Status.COMPLETED)
-            .withConclusion(null)
+            .withConclusion(GHCheckRun.Conclusion.SUCCESS)
             .create()
 }

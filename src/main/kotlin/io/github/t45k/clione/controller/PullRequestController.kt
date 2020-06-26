@@ -26,7 +26,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
      * Notice:
      */
     fun comment(inconsistentChangedCloneSets: List<List<CloneInstance>>) {
-        logger.info("[START]\tComment about $fullName/${pullRequest.number}")
+        logger.info("[START]\tComment about $fullName/$number")
 
         if (inconsistentChangedCloneSets.isEmpty()) {
             pullRequest.comment("Neither inconsistent changed nor new clone sets were detected.\nGood job! ")
@@ -102,12 +102,16 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
             pullRequest.head.label
         }
 
-    fun sendInProgressStatus() = sendCheckRunStatus(GHCheckRun.Status.IN_PROGRESS)
-    fun sendCompletedStatus() = sendCheckRunStatus(GHCheckRun.Status.COMPLETED)
+    @Suppress("DEPRECATION")
+    fun sendInProgressStatus() =
+        pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
+            .withStatus(GHCheckRun.Status.IN_PROGRESS)
+            .create()
 
     @Suppress("DEPRECATION")
-    private fun sendCheckRunStatus(status: GHCheckRun.Status) =
+    fun sendCompletedStatus() =
         pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
-            .withStatus(status)
+            .withStatus(GHCheckRun.Status.COMPLETED)
+            .withConclusion(null)
             .create()
 }

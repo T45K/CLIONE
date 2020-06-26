@@ -1,3 +1,3 @@
 src = "src/main/kotlin"
 lang = "kotlin"
-clone_detector = "nicad"
+clone_detector = "scc"

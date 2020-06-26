@@ -22,7 +22,7 @@ internal class CloneTrackerTest {
         val config = RunningConfig("src", Language.JAVA)
         val pullRequest: PullRequestController = generatePRMock(REPOSITORY_FULL_NAME, 0, NEW_COMMIT_HASH, OLD_COMMIT_HASH)
         val git = GitController.clone(REPOSITORY_FULL_NAME, "", pullRequest)
-        val cloneDetector = NiCadController(git.getProjectPath().resolve(config.infix), config)
+        val cloneDetector = NiCadController(git.getProjectPath().resolve(config.src), config)
         val changedFile = setOf("./storage/T45K/trial_0/src/Sample.java", git.getProjectPath().resolve("src/Sample.java").toString())
 
         val newFileCache: MutableMap<String, List<String>> = mutableMapOf()

@@ -1,2 +1,3 @@
-infix = "src/main/kotlin"
+src = "src/main/kotlin"
 lang = "kotlin"
+clone_detector = "nicad"

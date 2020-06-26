@@ -8,14 +8,14 @@ import io.github.t45k.clione.core.tokenizer.KotlinTokenizer
 import io.github.t45k.clione.core.tokenizer.Tokenizer
 
 data class RunningConfig(
-    val infix: String = DEFAULT_INFIX,
+    val src: String = DEFAULT_SRC,
     val lang: Language = DEFAULT_LANG,
     val cloneDetector: CloneDetector = DEFAULT_CLONE_DETECTOR,
     val granularity: Granularity = DEFAULT_GRANULARITY,
     val similarity: Int = DEFAULT_SIMILARITY
 ) {
     companion object {
-        const val DEFAULT_INFIX = "src"
+        const val DEFAULT_SRC = "src"
         val DEFAULT_LANG = Language.JAVA
         val DEFAULT_CLONE_DETECTOR = CloneDetector.NICAD
         val DEFAULT_GRANULARITY = Granularity.BLOCK

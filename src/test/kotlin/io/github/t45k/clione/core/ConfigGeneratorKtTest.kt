@@ -13,6 +13,7 @@ internal class ConfigGeneratorKtTest {
             lang = "java"
             granularity = "method"
             similarity = 9
+            clone_detector = "scc"
         """.trimIndent()
 
         val (src, lang, cloneDetector, granularity, similarity) = generateConfig(toml)

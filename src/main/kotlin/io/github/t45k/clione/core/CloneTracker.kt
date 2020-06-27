@@ -24,7 +24,7 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     }
 
-    private val sourceCodePath: Path = git.getProjectPath().resolve(config.infix).toRealPath()
+    private val sourceCodePath: Path = git.getProjectPath().resolve(config.src).toRealPath()
 
     fun track(): Pair<List<List<CloneInstance>>, List<List<CloneInstance>>> {
         logger.info("[START]\tClone Tracking on ${pullRequest.fullName}/${pullRequest.number}")

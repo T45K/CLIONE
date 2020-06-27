@@ -23,7 +23,7 @@ internal class SourcererCCControllerTest {
         val pullRequest: PullRequestController = generatePRMock(REPOSITORY_FULL_NAME, 0, COMMIT_HASH)
         val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", pullRequest)
         val config = RunningConfig("src", Language.JAVA)
-        val cloneDetector = SourcererCCController(git.getProjectPath().resolve(config.infix), config)
+        val cloneDetector = SourcererCCController(git.getProjectPath().resolve(config.src), config)
 
         val changedFiles: Set<String> = setOf("./storage/T45K/trial_0/src/Sample.java".toRealPath().toString())
         val (cloneSets: CloneSets, _) = cloneDetector.execute(changedFiles, CloneStatus.DELETE)

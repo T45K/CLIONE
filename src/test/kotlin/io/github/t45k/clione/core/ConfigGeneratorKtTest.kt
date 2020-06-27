@@ -9,14 +9,15 @@ internal class ConfigGeneratorKtTest {
 
     @Test
     fun testGenerateConfig() {
-        val toml = """infix = "src/main/java"
+        val toml = """src = "src/main/java"
             lang = "java"
             granularity = "method"
             similarity = 9
+            clone_detector = "scc"
         """.trimIndent()
 
-        val (infix, lang, cloneDetector, granularity, similarity) = generateConfig(toml)
-        assertEquals("src/main/java", infix)
+        val (src, lang, cloneDetector, granularity, similarity) = generateConfig(toml)
+        assertEquals("src/main/java", src)
         assertEquals(Language.JAVA, lang)
         assertEquals(CloneDetector.SOURCERERCC, cloneDetector)
         assertEquals(Granularity.METHOD, granularity)

@@ -2,6 +2,7 @@ package io.github.t45k.clione.controller
 
 import io.github.t45k.clione.entity.FileChangeType
 import io.github.t45k.clione.util.generatePRMock
+import org.kohsuke.github.GitHubBuilder
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.AfterTest
@@ -32,6 +33,25 @@ internal class GitControllerTest {
         assertTrue(oldChangedFiles.contains("${git.getProjectPath()}/src/Sample.java"))
         assertEquals(3, newChangedFiles.size)
         assertTrue(newChangedFiles.contains("${git.getProjectPath()}/src/Sample.java"))
+    }
+
+    @Test
+    fun testFindMergeBasedChangedFiles() {
+        val pullRequest: PullRequestController = GitHubBuilder.fromEnvironment()
+            .build()
+            .getRepository("alibaba/fastjson")
+            .getPullRequest(3268)
+            .run { PullRequestController(this) }
+        val git: GitController = GitController.clone("alibaba/fastjson", "", pullRequest)
+        val changedFiles: Pair<Set<String>, Set<String>> = git.findChangedFiles(
+            pullRequest.getComparisonCommits().first,
+            pullRequest.getComparisonCommits().second
+        )
+
+        assertEquals(2, changedFiles.first.size)
+        assertEquals(2, changedFiles.second.size)
+
+        git.deleteRepo()
     }
 
     @Test

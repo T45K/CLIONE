@@ -21,6 +21,7 @@ import org.eclipse.jgit.lib.ObjectId
 import org.eclipse.jgit.revwalk.RevCommit
 import org.eclipse.jgit.revwalk.RevTree
 import org.eclipse.jgit.revwalk.RevWalk
+import org.eclipse.jgit.revwalk.filter.RevFilter
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider
 import org.eclipse.jgit.treewalk.AbstractTreeIterator
 import org.eclipse.jgit.treewalk.CanonicalTreeParser
@@ -154,10 +155,10 @@ class GitController(private val git: Git) {
             .run { RawText(this.cachedBytes) }
 
     /**
-     * Same operation as "git diff revision1..revision2"
+     * Same operation as "git diff revision1...revision2"
      */
     private fun executeDiffCommand(oldCommitHash: String, newCommitHash: String): List<DiffEntry> {
-        val oldTreeParser: AbstractTreeIterator = prepareTreeParser(ObjectId.fromString(oldCommitHash))
+        val oldTreeParser: AbstractTreeIterator = prepareTreeParser(ObjectId.fromString(getCommonAncestorCommit(oldCommitHash, newCommitHash)))
         val newTreeParser: AbstractTreeIterator = prepareTreeParser(ObjectId.fromString(newCommitHash))
 
         return DiffFormatter(DisabledOutputStream.INSTANCE)
@@ -167,8 +168,16 @@ class GitController(private val git: Git) {
             .scan(oldTreeParser, newTreeParser)
     }
 
+    private fun getCommonAncestorCommit(oldCommitHash: String, newCommitHash: String): String =
+        RevWalk(git.repository)
+            .apply { this.revFilter = RevFilter.MERGE_BASE }
+            .apply { this.markStart(this.parseCommit(ObjectId.fromString(oldCommitHash))) }
+            .apply { this.markStart(this.parseCommit(ObjectId.fromString(newCommitHash))) }
+            .next()
+            .name
+
     private fun prepareTreeParser(objectId: ObjectId): AbstractTreeIterator {
-        val walk = RevWalk(git.repository)
+        val walk: RevWalk = RevWalk(git.repository).apply { this.revFilter = RevFilter.MERGE_BASE }
         val commit: RevCommit = walk.parseCommit(objectId)
         val tree: RevTree = walk.parseTree(commit.tree.id)
         val treeParser: CanonicalTreeParser = CanonicalTreeParser()

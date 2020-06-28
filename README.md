@@ -1,18 +1,18 @@
 ![Kotlin CI with Gradle](https://github.com/T45K/CLIONE/workflows/Kotlin%20CI%20with%20Gradle/badge.svg)
 
 <p>
-<img src="./logo.png" alt="logo" style="align: center;width: 25%;height: 25%">
+<img src="./logo.png" alt="logo" width=5% height=5% align=middle>
 < Hello.
 </p>
 
 CLIONEはコードクローン保守支援ボットです．<br>
-プルリクエスト作成をトリガーとして実行され，プルリクエスト内で行われた変更の前後で，一貫修正されていないクローンセットや．新しく追加されたクローンセットを通知します．
+プルリクエスト作成をトリガーとして実行され，プルリクエスト内で行われた変更の前後で，一貫修正されていないクローンセットや，新しく追加されたクローンセットを通知します．
 
 ## 使い方
 1. [こちら](https://github.com/apps/clione-bot) からGitHubアカウントと適用したいリポジトリを登録してください．
 2. CLIONEを利用したいプロジェクトに内に`.clione/config.toml`ファイルを作成してください．
 3. [設定](#設定)を参考に`config.toml`を編集してください．
-4.  プルリクエストを作成してください．
+4. 設定は以上です．あとはプルリクエストを作成してみてください．
 
 ## 設定
 `similarity`は整数型，それ以外は文字列型で記述してください．<br>

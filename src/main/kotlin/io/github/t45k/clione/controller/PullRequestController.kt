@@ -114,4 +114,11 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
             .withStatus(GHCheckRun.Status.COMPLETED)
             .withConclusion(GHCheckRun.Conclusion.SUCCESS)
             .create()
+
+    @Suppress("DEPRECATION")
+    fun sendErrorStatus() =
+        pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
+            .withStatus(GHCheckRun.Status.COMPLETED)
+            .withConclusion(GHCheckRun.Conclusion.SUCCESS)
+            .create()
 }

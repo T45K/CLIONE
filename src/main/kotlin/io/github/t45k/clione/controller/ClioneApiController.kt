@@ -70,12 +70,12 @@ class ClioneApiController {
         runCatching {
             val cloneTracker = CloneTracker(git, pullRequest, config)
             val (oldInconsistentChangedCloneSets, newInconsistentChangedCloneSets) = cloneTracker.track()
-            pullRequest.comment(oldInconsistentChangedCloneSets)
+            pullRequest.comment(newInconsistentChangedCloneSets)
         }.onFailure {
             logger.error(it.toString())
             pullRequest.errorComment()
-        }
-        pullRequest.sendCompletedStatus()
+            pullRequest.sendErrorStatus()
+        }.onSuccess { pullRequest.sendCompletedStatus() }
 
         git.deleteRepo()
     }

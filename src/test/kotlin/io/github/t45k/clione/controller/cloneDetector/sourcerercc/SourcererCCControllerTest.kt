@@ -30,6 +30,6 @@ internal class SourcererCCControllerTest {
 
         assertEquals(listOf(setOf(1, 2)), cloneSets)
 
-        git.deleteRepo()
+        git.close()
     }
 }

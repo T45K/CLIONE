@@ -41,6 +41,6 @@ internal class CloneTrackerTest {
 
         assertEquals(1, oldInconsistentChangedClones.size)
 
-        git.deleteRepo()
+        git.close()
     }
 }

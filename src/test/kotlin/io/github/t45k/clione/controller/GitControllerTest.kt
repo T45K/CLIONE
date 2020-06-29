@@ -51,7 +51,7 @@ internal class GitControllerTest {
         assertEquals(2, changedFiles.first.size)
         assertEquals(2, changedFiles.second.size)
 
-        git.deleteRepo()
+        git.close()
     }
 
     @Test
@@ -65,6 +65,6 @@ internal class GitControllerTest {
 
     @AfterTest
     fun deleteRepo() {
-        git.deleteRepo()
+        git.close()
     }
 }

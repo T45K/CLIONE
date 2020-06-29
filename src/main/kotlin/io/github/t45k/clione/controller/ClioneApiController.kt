@@ -71,7 +71,7 @@ class ClioneApiController {
             val cloneTracker = CloneTracker(git, pullRequest, config)
             val (oldInconsistentChangedCloneSets, newInconsistentChangedCloneSets) = cloneTracker.track()
             pullRequest.comment(newInconsistentChangedCloneSets)
-            pullRequest.sendCompletedStatus()
+            pullRequest.sendSuccessStatus()
         }.onFailure {
             logger.error(it.toString())
             pullRequest.errorComment()

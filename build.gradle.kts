@@ -6,6 +6,7 @@ plugins {
     kotlin("jvm") version "1.3.71"
     kotlin("plugin.spring") version "1.3.71"
     application
+    id("antlr")
 }
 
 group = "io.github.t45k"
@@ -43,6 +44,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
     testImplementation("io.mockk:mockk:1.10.0")
+    antlr("org.antlr:antlr4:4.7.2")
 }
 
 /*

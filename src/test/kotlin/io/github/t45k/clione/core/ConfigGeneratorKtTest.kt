@@ -26,7 +26,7 @@ internal class ConfigGeneratorKtTest {
 
     @Test
     fun testGenerateConfigWithException() {
-        val toml = """lang = "python""""
+        val toml = """lang = "perl""""
         assertFailsWith<InvalidConfigSpecifiedException> { generateConfig(toml) }
     }
 }

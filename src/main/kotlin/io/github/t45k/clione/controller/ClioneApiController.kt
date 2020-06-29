@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.t45k.clione.core.CloneTracker
 import io.github.t45k.clione.core.RunningConfig
+import io.github.t45k.clione.core.Style
 import io.github.t45k.clione.core.generateConfig
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.github.GitHubAuthenticator
@@ -70,6 +71,11 @@ class ClioneApiController {
                     generateConfig(Files.readString(git.getProjectPath().resolve(CONFIGURATION_LOCATION)))
                 } else {
                     logger.info("$repositoryFullName doesn't have config.toml")
+                    return
+                }
+
+                if (config.style == Style.NONE) {
+                    logger.info("$repositoryFullName specifies none style")
                     return
                 }
 

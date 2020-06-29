@@ -5,7 +5,7 @@
 < Hello.
 </p>
 
-[[EN](#What's CLIONE)]] [[JP](#CLIONEとは)]
+[[EN](#What's_CLIONE)] [[JP](#CLIONEとは)]
 
 # What's CLIONE
 CLIONE is a code clone maintenance assistant bot.<br>
@@ -25,7 +25,7 @@ Simple example is [here](./.clione/config.toml).
 |:--:|:--:|:--:|
 |src|Relative path of source directory.<br>ex: `src/main/java`|`src`|
 |lang|Programming language. Following languages are selectable.<br>`java`, `kotlin`,`python`|`java`|
-|clone_detector|Clone Detector.Following detectors are selectable. Parentheses are the supported languages.<br>`NiCad(java, python)`,`SourcererCC(java, kotlin, python)`|`NiCad`|
+|clone_detector|Clone Detector. Following detectors are selectable. Parentheses are the supported languages.<br>`NiCad(java, python)`,`SourcererCC(java, kotlin, python)`|`NiCad`|
 |granularity|Granularity of clones. Followings are selectable.<br>`method`,`block`|`block`|
 |similarity|Similarity of clones. If you enter an integer d between 0 and 10, the clones are detected with a similarity of 10*d%.|`8`|
 

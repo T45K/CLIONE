@@ -1,8 +1,11 @@
+@file:Suppress("DEPRECATION")
+
 package io.github.t45k.clione.controller
 
 import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneStatus
 import org.kohsuke.github.GHCheckRun
+import org.kohsuke.github.GHCheckRunBuilder
 import org.kohsuke.github.GHPullRequest
 import org.kohsuke.github.GHPullRequestFileDetail
 import org.slf4j.Logger
@@ -102,23 +105,22 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
             pullRequest.head.label
         }
 
-    @Suppress("DEPRECATION")
     fun sendInProgressStatus() =
         pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
             .withStatus(GHCheckRun.Status.IN_PROGRESS)
             .create()
 
-    @Suppress("DEPRECATION")
     fun sendCompletedStatus() =
         pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
             .withStatus(GHCheckRun.Status.COMPLETED)
             .withConclusion(GHCheckRun.Conclusion.SUCCESS)
+            .add(GHCheckRunBuilder.Output("Success", "Notification is completed."))
             .create()
 
-    @Suppress("DEPRECATION")
-    fun sendErrorStatus() =
+    fun sendErrorStatus(errorMessage: String) =
         pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
             .withStatus(GHCheckRun.Status.COMPLETED)
-            .withConclusion(GHCheckRun.Conclusion.SUCCESS)
+            .withConclusion(GHCheckRun.Conclusion.CANCELLED)
+            .add(GHCheckRunBuilder.Output("Error", errorMessage))
             .create()
 }

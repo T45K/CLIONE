@@ -49,11 +49,11 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) : Abstr
     override fun execute(changedFiles: Set<String>, initialCloneStatus: CloneStatus): Pair<CloneSets, IdCloneMap> {
         logger.info("[START]\tClone detection")
         cleanup()
-        setup()
 
         val (idCloneMap: IdCloneMap, bagOfTokens: List<BagOfToken>) = collectCloneCandidates(changedFiles, initialCloneStatus)
 
-        generateSCCFormat(bagOfTokens).let { Files.writeString(sourceCodePath.resolve(QUERY_FILE_LOCATION), it) }
+        Files.createDirectory(sourceCodePath.resolve("NODE")).let { Files.createDirectory(it.resolve("query")) }
+        Files.writeString(sourceCodePath.resolve(QUERY_FILE_LOCATION), generateSCCFormat(bagOfTokens))
         detectClones()
         val sccResult: List<String> = Files.readAllLines(Path.of(sourceCodePath.toString(), "NODE", "output${config.similarity}.0", SCC_RESULT_FILE_NAME))
 
@@ -77,18 +77,15 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) : Abstr
                     acc.second.also { it.add(bagOfToken) }
             }
 
-    private fun setup() {
-        SearchManager.clonesWriter = null
-        SearchManager.recoveryWriter = null
-
-        Files.createDirectory(sourceCodePath.resolve("NODE"))
-            .let { Files.createDirectory(it.resolve("query")) }
-    }
-
     /**
      * Detail: https://github.com/T45K/SourcererCC/blob/master/clone-detector/README.md
+     * Notice: SourcererCC (SearchManager) internally uses a lot of mutable static fields.
+     *         So, if concurrent access occurs, the results will not be ensured.
      */
+    @Synchronized
     private fun detectClones() {
+        SearchManager.clonesWriter = null
+        SearchManager.recoveryWriter = null
         SearchManager.main(arrayOf("init", config.similarity.toString(), "$sourceCodePath/", SCC_PROPERTY_LOCATION))
         SearchManager.main(arrayOf("index", config.similarity.toString(), "$sourceCodePath/", SCC_PROPERTY_LOCATION))
         moveIndexFiles()

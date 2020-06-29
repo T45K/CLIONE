@@ -6,6 +6,7 @@ import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_GRANULARITY
 import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_LANG
 import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_SIMILARITY
 import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_SRC
+import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_STYLE
 import io.github.t45k.clione.entity.InvalidConfigSpecifiedException
 
 fun generateConfig(input: String): RunningConfig {
@@ -15,7 +16,8 @@ fun generateConfig(input: String): RunningConfig {
         toml.getLang(),
         toml.getCloneDetector(),
         toml.getGranularity(),
-        toml.getSimilarity()
+        toml.getSimilarity(),
+        toml.getStyle()
     )
 }
 
@@ -55,4 +57,14 @@ private fun Toml.getSimilarity(): Int {
         throw InvalidConfigSpecifiedException("Similarity must be an integer value between 0 to 10")
     }
     return similarity
+}
+
+private fun Toml.getStyle(): Style {
+    val style = this.getString("style") ?: return DEFAULT_STYLE
+    return when (style.toLowerCase()) {
+        "full" -> Style.FULL
+        "summary" -> Style.SUMMARY
+        "none" -> Style.NONE
+        else -> throw InvalidConfigSpecifiedException("style: $style cannot be specified")
+    }
 }

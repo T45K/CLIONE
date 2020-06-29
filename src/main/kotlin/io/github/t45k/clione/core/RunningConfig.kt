@@ -11,7 +11,8 @@ data class RunningConfig(
     val lang: Language = DEFAULT_LANG,
     val cloneDetector: CloneDetector = DEFAULT_CLONE_DETECTOR,
     val granularity: Granularity = DEFAULT_GRANULARITY,
-    val similarity: Int = DEFAULT_SIMILARITY
+    val similarity: Int = DEFAULT_SIMILARITY,
+    val style: Style = DEFAULT_STYLE
 ) {
     companion object {
         const val DEFAULT_SRC = "src"
@@ -19,6 +20,7 @@ data class RunningConfig(
         val DEFAULT_CLONE_DETECTOR = CloneDetector.NICAD
         val DEFAULT_GRANULARITY = Granularity.BLOCK
         const val DEFAULT_SIMILARITY = 8
+        val DEFAULT_STYLE = Style.FULL
     }
 }
 
@@ -41,4 +43,8 @@ enum class CloneDetector {
 
 enum class Granularity {
     METHOD, BLOCK
+}
+
+enum class Style {
+    FULL, SUMMARY, NONE
 }

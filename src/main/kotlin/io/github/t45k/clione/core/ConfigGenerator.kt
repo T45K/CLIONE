@@ -25,7 +25,8 @@ private fun Toml.getLang(): Language {
     val lang = this.getString("lang") ?: return DEFAULT_LANG
     return when (lang.toLowerCase()) {
         "java" -> Language.JAVA
-        "kotlin" -> Language.KOTLIN
+        "kotlin", "kt" -> Language.KOTLIN
+        "python", "python3", "py" -> Language.PYTHON
         else -> throw InvalidConfigSpecifiedException("lang: $lang cannot be specified")
     }
 }

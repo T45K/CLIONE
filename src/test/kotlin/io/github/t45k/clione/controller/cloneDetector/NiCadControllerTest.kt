@@ -37,6 +37,6 @@ internal class NiCadControllerTest {
         val clones: List<CloneInstance> = cloneDetector.parseCandidateXML(fileCache, changedFiles)
         assertEquals(6, clones.size)
 
-        git.deleteRepo()
+        git.close()
     }
 }

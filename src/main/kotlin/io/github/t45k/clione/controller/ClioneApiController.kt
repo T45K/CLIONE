@@ -57,28 +57,26 @@ class ClioneApiController {
         logger.info("Received pull request open from $repositoryFullName")
 
         val (pullRequest: PullRequestController, token: String) = GitHubAuthenticator.authenticate(json)
-        val git: GitController = GitController.clone(repositoryFullName, token, pullRequest)
-        val config: RunningConfig = if (Files.exists(git.getProjectPath().resolve(CONFIGURATION_LOCATION))) {
-            generateConfig(Files.readString(git.getProjectPath().resolve(CONFIGURATION_LOCATION)))
-        } else {
-            logger.info("$repositoryFullName doesn't have config.toml")
-            git.deleteRepo()
-            return
-        }
+        try {
+            GitController.clone(repositoryFullName, token, pullRequest).use { git ->
+                val config: RunningConfig = if (Files.exists(git.getProjectPath().resolve(CONFIGURATION_LOCATION))) {
+                    generateConfig(Files.readString(git.getProjectPath().resolve(CONFIGURATION_LOCATION)))
+                } else {
+                    logger.info("$repositoryFullName doesn't have config.toml")
+                    return
+                }
 
-        pullRequest.sendInProgressStatus()
-        runCatching {
-            val cloneTracker = CloneTracker(git, pullRequest, config)
-            val (oldInconsistentChangedCloneSets, newInconsistentChangedCloneSets) = cloneTracker.track()
-            pullRequest.comment(newInconsistentChangedCloneSets)
-            pullRequest.sendSuccessStatus()
-        }.onFailure {
-            logger.error(it.toString())
+                pullRequest.sendInProgressStatus()
+                val cloneTracker = CloneTracker(git, pullRequest, config)
+                val (_, newInconsistentChangedCloneSets) = cloneTracker.track()
+                pullRequest.comment(newInconsistentChangedCloneSets)
+                pullRequest.sendSuccessStatus()
+            }
+        } catch (e: Exception) {
+            logger.error(e.toString())
             pullRequest.errorComment()
-            pullRequest.sendErrorStatus(it.toString())
+            pullRequest.sendErrorStatus(e.toString())
         }
-
-        git.deleteRepo()
     }
 
     private fun isPullRequestOpen(event: String, action: String): Boolean =

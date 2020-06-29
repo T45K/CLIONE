@@ -30,7 +30,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
 
-class GitController(private val git: Git) {
+class GitController(private val git: Git) : AutoCloseable {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
@@ -57,11 +57,12 @@ class GitController(private val git: Git) {
 
     private val repositoryPath: Path = git.repository.directory.parentFile.absoluteFile.toPath()
 
-    fun deleteRepo() =
+    override fun close() {
         Observable.just(repositoryPath)
             .doOnSubscribe { logger.info("[START]\tdelete ${git.repository.directory.parentFile}") }
             .doOnComplete { logger.info("[END]\tdelete ${git.repository.directory.parentFile}") }
             .subscribe(::deleteRecursive)!!
+    }
 
     fun getProjectPath(): Path = repositoryPath
 

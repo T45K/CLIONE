@@ -10,6 +10,7 @@ import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.FileChangeType
 import io.github.t45k.clione.entity.IdCloneMap
+import io.github.t45k.clione.entity.InstancedCloneSets
 import io.github.t45k.clione.entity.PathClonesMap
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

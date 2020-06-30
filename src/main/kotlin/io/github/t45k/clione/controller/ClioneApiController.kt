@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.t45k.clione.core.CloneTracker
 import io.github.t45k.clione.core.RunningConfig
 import io.github.t45k.clione.core.Style
+import io.github.t45k.clione.core.Summary
+import io.github.t45k.clione.core.SummaryGenerator
 import io.github.t45k.clione.core.generateConfig
+import io.github.t45k.clione.entity.InstancedCloneSets
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.github.GitHubAuthenticator
 import io.github.t45k.clione.util.DigestUtil
@@ -81,8 +84,9 @@ class ClioneApiController {
 
                 pullRequest.sendInProgressStatus()
                 val cloneTracker = CloneTracker(git, pullRequest, config)
-                val (_, newInconsistentChangedCloneSets) = cloneTracker.track()
-                pullRequest.comment(newInconsistentChangedCloneSets)
+                val (oldImportantCloneSets: InstancedCloneSets, newImportantCloneSets: InstancedCloneSets) = cloneTracker.track()
+                val summary: Summary = SummaryGenerator().generate(oldImportantCloneSets, newImportantCloneSets)
+                pullRequest.comment(newImportantCloneSets)
                 pullRequest.sendSuccessStatus()
             }
         } catch (e: Exception) {

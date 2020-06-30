@@ -2,8 +2,7 @@
 
 package io.github.t45k.clione.controller
 
-import io.github.t45k.clione.entity.CloneInstance
-import io.github.t45k.clione.entity.CloneStatus
+import io.github.t45k.clione.core.TrackingResult
 import org.kohsuke.github.GHCheckRun
 import org.kohsuke.github.GHCheckRunBuilder
 import org.kohsuke.github.GHPullRequest
@@ -28,10 +27,10 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
      * Comment to the Pull Request to notify inconsistent changes of clone sets.
      * Notice:
      */
-    fun comment(inconsistentChangedCloneSets: List<List<CloneInstance>>) {
+    fun comment(trackingResult: TrackingResult) {
         logger.info("[START]\tComment about $fullName/$number")
 
-        if (inconsistentChangedCloneSets.isEmpty()) {
+        if (trackingResult.isAllEmpty()) {
             pullRequest.comment("Neither inconsistent changed nor new clone sets were detected.\nGood job! ")
         }
 

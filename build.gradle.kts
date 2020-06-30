@@ -7,6 +7,7 @@ plugins {
     kotlin("plugin.spring") version "1.3.71"
     application
     id("antlr")
+    id("com.github.johnrengelman.shadow") version "6.0.0"
 }
 
 group = "io.github.t45k"

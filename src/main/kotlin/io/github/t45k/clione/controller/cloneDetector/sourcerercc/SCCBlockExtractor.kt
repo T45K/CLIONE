@@ -1,6 +1,8 @@
 package io.github.t45k.clione.controller.cloneDetector.sourcerercc
 
 import io.github.t45k.clione.entity.CloneStatus
+import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.tree.ParseTreeListener
 import java.nio.file.Path
 
 interface SCCBlockExtractor {
@@ -15,4 +17,13 @@ interface SCCBlockExtractor {
      * @return clone candidates, which is CloneInstance and raw string
      */
     fun extract(code: String, filePath: Path, cloneStatus: CloneStatus): List<Pair<LazyCloneInstance, String>>
+}
+
+interface SCCBlockExtractListener : ParseTreeListener {
+
+    /**
+     * Listener. Classes derived from this interface act as Visitor.
+     */
+
+    fun getList(): List<ParserRuleContext>
 }

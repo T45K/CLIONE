@@ -1,6 +1,6 @@
 package io.github.t45k.clione.core.tokenizer
 
-import antlr.python3.Python3Lexer
+import Python3Lexer
 import io.github.t45k.clione.util.toCharStream
 import org.antlr.v4.runtime.CommonTokenStream
 

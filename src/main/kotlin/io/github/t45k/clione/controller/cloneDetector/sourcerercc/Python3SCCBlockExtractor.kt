@@ -1,8 +1,8 @@
 package io.github.t45k.clione.controller.cloneDetector.sourcerercc
 
-import antlr.python3.Python3BaseListener
-import antlr.python3.Python3Lexer
-import antlr.python3.Python3Parser
+import Python3BaseListener
+import Python3Lexer
+import Python3Parser
 import io.github.t45k.clione.core.tokenizer.Python3Tokenizer
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.util.toCharStream

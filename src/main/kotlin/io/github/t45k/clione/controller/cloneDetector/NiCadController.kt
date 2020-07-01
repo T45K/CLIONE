@@ -35,7 +35,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractClo
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val cloneDetectionResultPath: Path = sourceCodePath.parent
         .resolve("${sourceCodePath.fileName}_blocks-blind-clones")
-        .resolve("${sourceCodePath.fileName}_blocks-blind-clones-0.30.xml")
+        .resolve("${sourceCodePath.fileName}_blocks-blind-clones-0.${10 - config.similarity}0.xml")
     private val cloneCandidateDataPath: Path = sourceCodePath.parent
         .resolve("${sourceCodePath.fileName}_blocks.xml")
     private val nicadConfigPath: Path = nicadDir.resolve("config/${sourceCodePath.toString().substringAfter("storage/").replace('/', '_')}_clione.cfg")
@@ -164,7 +164,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractClo
      */
     private fun generateCGI(): String {
         val config: String = """
-            threshold=${config.similarity.toFloat() / 10f}
+            threshold=0.${10 - config.similarity}
             minsize=5
             maxsize=2500
             transform=none
@@ -178,7 +178,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractClo
             exclude=""
         """.trimIndent()
         Files.createFile(nicadConfigPath)
-        return Files.writeString(nicadConfigPath, config).fileName.toString().substringBefore('.')
+        return Files.writeString(nicadConfigPath, config).fileName.toString().substringBeforeLast('.')
     }
 
     /**

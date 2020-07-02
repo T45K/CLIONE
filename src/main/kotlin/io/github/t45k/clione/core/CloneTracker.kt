@@ -9,8 +9,8 @@ import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.FileChangeType
-import io.github.t45k.clione.entity.FileClonesMap
 import io.github.t45k.clione.entity.IdCloneMap
+import io.github.t45k.clione.entity.PathClonesMap
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Path
@@ -31,21 +31,21 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
 
         val (oldCommitHash: String, newCommitHash: String) = pullRequest.getComparisonCommits()
         val cloneDetector: CloneDetectorController = create(sourceCodePath, config)
-        val (oldChangedFiles: Set<String>, newChangedFiles: Set<String>) = git.findChangedFiles(oldCommitHash, newCommitHash)
+        val (oldChangedFiles: Set<Path>, newChangedFiles: Set<Path>) = git.findChangedFiles(oldCommitHash, newCommitHash)
 
         logger.info("[START]\tNew revision: $newCommitHash")
         git.checkout(newCommitHash)
         val (newCloneSets: CloneSets, newIdCloneMap: IdCloneMap) = cloneDetector.execute(newChangedFiles, CloneStatus.ADD)
-        val newFileClonesMap: FileClonesMap = newIdCloneMap.values.groupBy { it.fileName }
+        val newPathClonesMap: PathClonesMap = newIdCloneMap.values.groupBy { it.filePath }
         logger.info("[END]\tNew revision: $newCommitHash")
 
         logger.info("[START]\tOld revision: $oldCommitHash")
         git.checkout(oldCommitHash)
         val (oldCloneSets: CloneSets, oldIdCloneMap: IdCloneMap) = cloneDetector.execute(oldChangedFiles, CloneStatus.DELETE)
-        val oldFileClonesMap: FileClonesMap = oldIdCloneMap.values.groupBy { it.fileName }
+        val oldPathClonesMap: PathClonesMap = oldIdCloneMap.values.groupBy { it.filePath }
         logger.info("[END]\tOld revision: $oldCommitHash")
 
-        mapClones(oldFileClonesMap, newFileClonesMap, oldChangedFiles, oldCommitHash, newCommitHash)
+        mapClones(oldPathClonesMap, newPathClonesMap, oldChangedFiles, oldCommitHash, newCommitHash)
 
         logger.info("[END]\tclone tracking on ${pullRequest.number}")
 
@@ -61,16 +61,16 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
             .map { it.map { id -> idCloneMap[id] ?: error("") } }
 
     @VisibleForTesting
-    fun mapClones(oldFileClonesMap: FileClonesMap, newFileClonesMap: FileClonesMap, oldChangedFiles: Set<String>,
+    fun mapClones(oldPathClonesMap: PathClonesMap, newPathClonesMap: PathClonesMap, oldChangedFiles: Set<Path>,
                   oldCommitHash: String, newCommitHash: String) {
-        for ((oldFilesPath: String, clones: List<CloneInstance>) in oldFileClonesMap.entries) {
+        for ((oldFilesPath: Path, clones: List<CloneInstance>) in oldPathClonesMap.entries) {
             if (!oldChangedFiles.contains(oldFilesPath)) {
                 continue
             }
 
-            val (type: FileChangeType, lineMapping: List<Int>, newFileName: String) =
+            val (type: FileChangeType, lineMapping: List<Int>, newFilePath: Path) =
                 git.calcFileDiff(oldFilesPath, oldCommitHash, newCommitHash)
-            val candidates: List<CloneInstance> = newFileClonesMap[newFileName] ?: emptyList()
+            val candidates: List<CloneInstance> = newPathClonesMap[newFilePath] ?: emptyList()
             if (type == FileChangeType.DELETE) {
                 continue
             } else if (lineMapping.isEmpty()) {

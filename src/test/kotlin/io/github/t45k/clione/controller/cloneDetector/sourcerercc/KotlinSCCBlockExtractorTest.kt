@@ -1,7 +1,7 @@
 package io.github.t45k.clione.controller.cloneDetector.sourcerercc
 
 import io.github.t45k.clione.entity.CloneStatus
-import io.github.t45k.clione.util.toPath
+import io.github.t45k.clione.util.EMPTY_NAME_PATH
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -109,7 +109,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
     fun getNumber(): Int = pullRequest.number
 }
 """
-        val blocks: List<Pair<LazyCloneInstance, String>> = KotlinSCCBlockExtractor().extract(code, "".toPath(), CloneStatus.STABLE)
+        val blocks: List<Pair<LazyCloneInstance, String>> = KotlinSCCBlockExtractor().extract(code, EMPTY_NAME_PATH, CloneStatus.STABLE)
 
         // fun comment and for stmt
         assertEquals(2, blocks.size)

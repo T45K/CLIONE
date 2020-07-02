@@ -2,8 +2,8 @@ package io.github.t45k.clione.controller
 
 import io.github.t45k.clione.entity.FileChangeType
 import io.github.t45k.clione.entity.FileDiff
+import io.github.t45k.clione.util.EMPTY_NAME_PATH
 import io.github.t45k.clione.util.deleteRecursive
-import io.github.t45k.clione.util.toPath
 import io.reactivex.rxjava3.core.Observable
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.errors.JGitInternalException
@@ -78,32 +78,31 @@ class GitController(private val git: Git) : AutoCloseable {
     /**
      * Execute `git diff oldCommitHash..newCommitHash` and collect changed files in each revision
      */
-    fun findChangedFiles(oldCommitHash: String, newCommitHash: String): Pair<Set<String>, Set<String>> {
-        val oldFileNames: MutableSet<String> = mutableSetOf()
-        val newFileNames: MutableSet<String> = mutableSetOf()
+    fun findChangedFiles(oldCommitHash: String, newCommitHash: String): Pair<Set<Path>, Set<Path>> =
         executeDiffCommand(oldCommitHash, newCommitHash)
-            .forEach {
-                it.oldPath?.apply { oldFileNames.add(completePath(this)) }
-                it.newPath?.apply { newFileNames.add(completePath(this)) }
-            }
+            .fold(mutableSetOf<Path>() to mutableSetOf<Path>(),
+                { (oldChangedFiles, newChangedFiles), diffEntry ->
+                    diffEntry.oldPath?.apply { oldChangedFiles.add(completePath(this)) }
+                    diffEntry.newPath?.apply { newChangedFiles.add(completePath(this)) }
+                    oldChangedFiles to newChangedFiles
+                })
+            .let { it.first to it.second }
 
-        return oldFileNames to newFileNames
-    }
 
     /**
      * This method must be called about a changed file.n
      *
      * If a change between the commits is only change of file name, line mapping is empty
      */
-    fun calcFileDiff(filePath: String, oldCommitHash: String, newCommitHash: String): FileDiff {
+    fun calcFileDiff(filePath: Path, oldCommitHash: String, newCommitHash: String): FileDiff {
         checkout(oldCommitHash)
-        val fileName: String = repositoryPath.relativize(filePath.toPath()).toString()
+        val fileName: String = repositoryPath.relativize(filePath).toString()
         val entry: DiffEntry = executeDiffCommand(oldCommitHash, newCommitHash).first { it.oldPath == fileName }
 
         if (entry.changeType == DiffEntry.ChangeType.DELETE) {
-            return FileDiff(FileChangeType.DELETE, emptyList(), "")
+            return FileDiff(FileChangeType.DELETE, emptyList(), EMPTY_NAME_PATH)
         } else if (entry.changeType == DiffEntry.ChangeType.ADD) {
-            return FileDiff(FileChangeType.ADD, emptyList(), "")
+            return FileDiff(FileChangeType.ADD, emptyList(), EMPTY_NAME_PATH)
         }
 
         val oldRawText: RawText = readBlob(entry.oldId)
@@ -118,7 +117,7 @@ class GitController(private val git: Git) : AutoCloseable {
         return FileDiff(FileChangeType.MODIFY, mapLine(editList, size), completePath(entry.newPath))
     }
 
-    private fun completePath(relativePath: String): String = repositoryPath.resolve(relativePath).toString()
+    private fun completePath(relativeFileLocation: String): Path = repositoryPath.resolve(relativeFileLocation).toRealPath()
 
     /**
      * Mapping line number of the file of old revision to new one

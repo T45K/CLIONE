@@ -11,5 +11,6 @@ fun deleteRecursive(path: Path) {
     Files.deleteIfExists(path)
 }
 
-fun String.toPath(): Path = Path.of(this)
 fun String.toRealPath(): Path = Path.of(this).toRealPath()
+
+val EMPTY_NAME_PATH: Path = Path.of("")

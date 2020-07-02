@@ -48,7 +48,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
             }
 
             val src: Regex = "storage/[^/]+/[^/]+/".toRegex()
-            val fileName = src.split(inconsistentChangedClone.fileName)[1]
+            val fileName = src.split(inconsistentChangedClone.filePath.toString())[1]
             val detail: GHPullRequestFileDetail = (changedFiles[fileName] ?: error(""))[0]
 
             val multiLine = "\\+([0-9]+,[0-9]+)\\s".toRegex().findAll(detail.patch)
@@ -60,7 +60,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
                 .map { max(it.first, inconsistentChangedClone.startLine) to min(it.second, inconsistentChangedClone.endLine) }
                 .toList()
 
-            val clonePlaces: String = stableClones.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.fileName)[1]}#L${it.startLine}-L${it.endLine}" }
+            val clonePlaces: String = stableClones.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
 
             val body = """In this Pull Request, this code fragment in ${getFileUrlBase()}/$fileName#L${inconsistentChangedClone.startLine}-L${inconsistentChangedClone.endLine} is modified,
                 |but the following $form unmodified.

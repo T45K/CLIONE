@@ -3,6 +3,7 @@ package io.github.t45k.clione.controller.cloneDetector
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.IdCloneMap
+import java.nio.file.Path
 
 interface CloneDetectorController {
 
@@ -16,5 +17,5 @@ interface CloneDetectorController {
      *
      * @return CloneSets and IdCloneMap
      */
-    fun execute(changedFiles: Set<String>, initialCloneStatus: CloneStatus): Pair<CloneSets, IdCloneMap>
+    fun execute(changedFiles: Set<Path>, initialCloneStatus: CloneStatus): Pair<CloneSets, IdCloneMap>
 }

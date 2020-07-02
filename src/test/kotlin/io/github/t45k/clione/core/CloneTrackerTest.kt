@@ -7,6 +7,7 @@ import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.util.generatePRMock
 import io.github.t45k.clione.util.toRealPath
 import org.junit.Test
+import java.nio.file.Path
 import kotlin.test.assertEquals
 
 internal class CloneTrackerTest {
@@ -23,17 +24,17 @@ internal class CloneTrackerTest {
         val pullRequest: PullRequestController = generatePRMock(REPOSITORY_FULL_NAME, 0, NEW_COMMIT_HASH, OLD_COMMIT_HASH)
         val git = GitController.clone(REPOSITORY_FULL_NAME, "", pullRequest)
         val cloneDetector = NiCadController(git.getProjectPath().resolve(config.src), config)
-        val changedFile = setOf("./storage/T45K/trial_0/src/Sample.java", git.getProjectPath().resolve("src/Sample.java").toString())
+        val changedFile = setOf("./storage/T45K/trial_0/src/Sample.java".toRealPath(), git.getProjectPath().resolve("src/Sample.java").toRealPath())
 
-        val newFileCache: MutableMap<String, List<String>> = mutableMapOf()
+        val newFileCache: MutableMap<Path, List<String>> = mutableMapOf()
         val (_, newIdCloneMap) = cloneDetector.collectResult(changedFile, CloneStatus.ADD, newFileCache)
         cloneDetector.parseCandidateXML(newFileCache, changedFile).forEach { candidate -> newIdCloneMap.computeIfAbsent(candidate.id) { candidate } }
-        val newFileClonesMap = newIdCloneMap.values.groupBy { it.fileName.toRealPath().toString() }
+        val newFileClonesMap = newIdCloneMap.values.groupBy { it.filePath }
 
         git.checkout(OLD_COMMIT_HASH)
-        val oldFileCache: MutableMap<String, List<String>> = mutableMapOf()
+        val oldFileCache: MutableMap<Path, List<String>> = mutableMapOf()
         val (oldCloneSets, oldIdCloneMap) = cloneDetector.collectResult(changedFile, CloneStatus.DELETE, oldFileCache)
-        val oldFileClonesMap = oldIdCloneMap.values.groupBy { it.fileName.toRealPath().toString() }
+        val oldFileClonesMap = oldIdCloneMap.values.groupBy { it.filePath }
 
         val cloneTracker = CloneTracker(git, pullRequest, config)
         cloneTracker.mapClones(oldFileClonesMap, newFileClonesMap, changedFile, OLD_COMMIT_HASH, NEW_COMMIT_HASH)

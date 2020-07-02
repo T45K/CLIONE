@@ -8,6 +8,7 @@ import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.util.generatePRMock
 import io.github.t45k.clione.util.toRealPath
+import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -25,7 +26,7 @@ internal class SourcererCCControllerTest {
         val config = RunningConfig("src", Language.JAVA)
         val cloneDetector = SourcererCCController(git.getProjectPath().resolve(config.src), config)
 
-        val changedFiles: Set<String> = setOf("./storage/T45K/trial_0/src/Sample.java".toRealPath().toString())
+        val changedFiles: Set<Path> = setOf("./storage/T45K/trial_0/src/Sample.java".toRealPath())
         val (cloneSets: CloneSets, _) = cloneDetector.execute(changedFiles, CloneStatus.DELETE)
 
         assertEquals(listOf(setOf(1, 2)), cloneSets)

@@ -93,7 +93,7 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) : Abstr
     }
 
     /**
-     * Costruct clone sets from SCC result file contents.
+     * Construct clone sets from SCC result file contents.
      * SCC result file formats: file_id_1,clone_id_1,file_id_2,clone_id_2
      * This means clone_id_1 and clone_id_2 are clone pair.
      */

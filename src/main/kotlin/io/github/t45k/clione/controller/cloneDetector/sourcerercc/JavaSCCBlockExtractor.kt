@@ -24,7 +24,7 @@ class JavaSCCBlockExtractor : SCCBlockExtractor {
                     .apply { compilationUnit.accept(this) }
                     .blocks
                     .map {
-                        LazyCloneInstance(filePath.toString(), compilationUnit.getLineNumber(it.startPosition),
+                        LazyCloneInstance(filePath, compilationUnit.getLineNumber(it.startPosition),
                             compilationUnit.getLineNumber(it.startPosition + it.length - 1), cloneStatus,
                             JDTTokenizer().tokenize(it.toString())) to it.toString()
                     }

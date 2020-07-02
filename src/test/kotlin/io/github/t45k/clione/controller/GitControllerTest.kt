@@ -28,11 +28,11 @@ internal class GitControllerTest {
 
     @Test
     fun testFindChangeFiles() {
-        val (oldChangedFiles: Set<String>, newChangedFiles: Set<String>) = git.findChangedFiles(OLD_COMMIT_HASH, NEW_COMMIT_HASH)
+        val (oldChangedFiles: Set<Path>, newChangedFiles: Set<Path>) = git.findChangedFiles(OLD_COMMIT_HASH, NEW_COMMIT_HASH)
         assertEquals(3, oldChangedFiles.size)
-        assertTrue(oldChangedFiles.contains("${git.getProjectPath()}/src/Sample.java"))
+        assertTrue(oldChangedFiles.contains(git.getProjectPath().resolve("src/Sample.java").toRealPath()))
         assertEquals(3, newChangedFiles.size)
-        assertTrue(newChangedFiles.contains("${git.getProjectPath()}/src/Sample.java"))
+        assertTrue(newChangedFiles.contains(git.getProjectPath().resolve("src/Sample.java").toRealPath()))
     }
 
     @Test
@@ -43,7 +43,7 @@ internal class GitControllerTest {
             .getPullRequest(3268)
             .run { PullRequestController(this) }
         val git: GitController = GitController.clone("alibaba/fastjson", "", pullRequest)
-        val changedFiles: Pair<Set<String>, Set<String>> = git.findChangedFiles(
+        val changedFiles: Pair<Set<Path>, Set<Path>> = git.findChangedFiles(
             pullRequest.getComparisonCommits().first,
             pullRequest.getComparisonCommits().second
         )
@@ -56,7 +56,7 @@ internal class GitControllerTest {
 
     @Test
     fun testCalcFileDiff() {
-        val filePath = "${git.getProjectPath()}/src/Sample.java"
+        val filePath = git.getProjectPath().resolve("src/Sample.java").toRealPath()
         val (type, lineMapping, newFileName) = git.calcFileDiff(filePath, OLD_COMMIT_HASH, NEW_COMMIT_HASH)
         assertEquals(FileChangeType.MODIFY, type)
         lineMapping.forEach { assertEquals(0, it) }

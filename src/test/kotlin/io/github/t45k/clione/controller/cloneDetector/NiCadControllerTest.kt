@@ -8,6 +8,8 @@ import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.IdCloneMap
 import io.github.t45k.clione.util.generatePRMock
+import io.github.t45k.clione.util.toRealPath
+import java.nio.file.Path
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -26,8 +28,8 @@ internal class NiCadControllerTest {
         val config = RunningConfig("src", Language.JAVA, similarity = 7)
         val cloneDetector = NiCadController(git.getProjectPath().resolve(config.src), config)
 
-        val changedFiles: Set<String> = setOf("./storage/T45K/trial_0/src/Sample.java")
-        val fileCache: MutableMap<String, List<String>> = mutableMapOf()
+        val changedFiles: Set<Path> = setOf("./storage/T45K/trial_0/src/Sample.java".toRealPath())
+        val fileCache: MutableMap<Path, List<String>> = mutableMapOf()
         val (cloneSets: List<Set<Int>>, idCloneMap: IdCloneMap) = cloneDetector.collectResult(changedFiles, CloneStatus.ADD, fileCache)
         assertEquals(1, cloneSets.size)
         assertEquals(2, cloneSets[0].size)

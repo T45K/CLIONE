@@ -46,7 +46,7 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) : Abstr
      * Note: SCC requires 1-indexed block information.
      * Pay attention to indexing.
      */
-    override fun execute(changedFiles: Set<String>, initialCloneStatus: CloneStatus): Pair<CloneSets, IdCloneMap> {
+    override fun execute(changedFiles: Set<Path>, initialCloneStatus: CloneStatus): Pair<CloneSets, IdCloneMap> {
         logger.info("[START]\tClone detection")
         cleanup()
 
@@ -63,12 +63,12 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) : Abstr
         return constructCloneSets(sccResult) to idCloneMap
     }
 
-    private fun collectCloneCandidates(changedFiles: Set<String>, initialCloneStatus: CloneStatus) =
+    private fun collectCloneCandidates(changedFiles: Set<Path>, initialCloneStatus: CloneStatus) =
         Files.walk(sourceCodePath).asSequence()
             .filter { it.toString().endsWith(config.lang.extension) }
             .map { it.toRealPath() }
             .flatMap {
-                val status = if (changedFiles.contains(it.toString())) initialCloneStatus else CloneStatus.STABLE
+                val status = if (changedFiles.contains(it)) initialCloneStatus else CloneStatus.STABLE
                 config.lang.blockExtractor.extract(Files.readString(it), it, status).asSequence()
             }
             .mapIndexed { index, (candidate, block) -> (index + 1 to candidate.setId(index)) to block.toBagOfToken() }

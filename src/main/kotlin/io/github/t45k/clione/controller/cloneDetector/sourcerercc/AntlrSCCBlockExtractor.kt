@@ -36,6 +36,6 @@ abstract class AntlrSCCBlockExtractor(
                 val tokenSequence: List<String> = tokenize(code.substring(startPosition, endPosition + 1))
                 val startLine = block.start.line
                 val endLine = block.stop.line
-                LazyCloneInstance(filePath.toString(), startLine, endLine, cloneStatus, tokenSequence) to tokenSequence.joinToString(" ")
+                LazyCloneInstance(filePath, startLine, endLine, cloneStatus, tokenSequence) to tokenSequence.joinToString(" ")
             }
 }

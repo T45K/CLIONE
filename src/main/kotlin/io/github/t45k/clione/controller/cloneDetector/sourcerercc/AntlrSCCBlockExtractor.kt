@@ -32,6 +32,7 @@ abstract class AntlrSCCBlockExtractor(
             .map { block ->
                 val startPosition = block.start.startIndex
                 val endPosition = block.stop.stopIndex
+                println("$filePath $startPosition $endPosition")
                 val tokenSequence: List<String> = tokenize(code.substring(startPosition, endPosition + 1))
                 val startLine = block.start.line
                 val endLine = block.stop.line

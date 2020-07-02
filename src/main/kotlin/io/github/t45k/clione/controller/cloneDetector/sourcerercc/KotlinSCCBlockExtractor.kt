@@ -10,7 +10,7 @@ class KotlinSCCBlockExtractor : AntlrSCCBlockExtractor(
     { KotlinLexer(it) },
     { KotlinParser(it) },
     { (it as KotlinParser).kotlinFile() },
-    BlockExtractListener(),
+    { BlockExtractListener() },
     { KotlinTokenizer().tokenize(it) }
 ) {
 

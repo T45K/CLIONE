@@ -10,7 +10,7 @@ class Python3SCCBlockExtractor : AntlrSCCBlockExtractor(
     { Python3Lexer(it) },
     { Python3Parser(it) },
     { (it as Python3Parser).file_input() },
-    BlockExtractListener(),
+    { BlockExtractListener() },
     { Python3Tokenizer().tokenize(it) }
 ) {
 

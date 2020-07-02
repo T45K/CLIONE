@@ -14,7 +14,7 @@ abstract class AntlrSCCBlockExtractor(
     private val lex: (CharStream) -> TokenSource,
     private val parse: (CommonTokenStream) -> Parser,
     private val top: (Parser) -> ParseTree,
-    private val listener: SCCBlockExtractListener,
+    private val instantiateListener: () -> SCCBlockExtractListener,
     private val tokenize: (String) -> List<String>) : SCCBlockExtractor {
 
     override fun extract(code: String, filePath: Path, cloneStatus: CloneStatus): List<Pair<LazyCloneInstance, String>> =
@@ -25,6 +25,7 @@ abstract class AntlrSCCBlockExtractor(
             .run { parse(this) }
             .run {
                 val walker = ParseTreeWalker()
+                val listener: SCCBlockExtractListener = instantiateListener()
                 walker.walk(listener, top(this))
                 listener.getList()
             }
@@ -32,7 +33,6 @@ abstract class AntlrSCCBlockExtractor(
             .map { block ->
                 val startPosition = block.start.startIndex
                 val endPosition = block.stop.stopIndex
-                println("$filePath $startPosition $endPosition")
                 val tokenSequence: List<String> = tokenize(code.substring(startPosition, endPosition + 1))
                 val startLine = block.start.line
                 val endLine = block.stop.line

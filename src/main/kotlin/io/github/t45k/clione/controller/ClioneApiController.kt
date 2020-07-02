@@ -73,9 +73,10 @@ class ClioneApiController {
                 pullRequest.sendSuccessStatus()
             }
         } catch (e: Exception) {
-            logger.error(e.toString())
+            val errorMessage: String = e.toString() + "\n\t" + e.stackTrace.joinToString("\n\t")
+            logger.error(errorMessage)
             pullRequest.errorComment()
-            pullRequest.sendErrorStatus(e.toString())
+            pullRequest.sendErrorStatus(errorMessage)
         }
     }
 

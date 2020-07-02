@@ -1,52 +1,27 @@
 package io.github.t45k.clione.controller.cloneDetector.sourcerercc
 
+import KotlinLexer
+import KotlinParser
+import KotlinParserBaseListener
 import io.github.t45k.clione.core.tokenizer.KotlinTokenizer
-import io.github.t45k.clione.entity.CloneStatus
-import org.jetbrains.kotlin.spec.grammar.tools.tokenizeKotlinCode
-import java.nio.file.Path
-import java.util.ArrayDeque
-import java.util.Deque
+import org.antlr.v4.runtime.ParserRuleContext
 
-class KotlinSCCBlockExtractor : SCCBlockExtractor {
+class KotlinSCCBlockExtractor : AntlrSCCBlockExtractor(
+    { KotlinLexer(it) },
+    { KotlinParser(it) },
+    { (it as KotlinParser).kotlinFile() },
+    { BlockExtractListener() },
+    { KotlinTokenizer().tokenize(it) }
+) {
 
-    /**
-     * Extract clone candidates by using KotlinTokenizer
-     */
-    override fun extract(code: String, filePath: Path, cloneStatus: CloneStatus): List<Pair<LazyCloneInstance, String>> {
-        val leftBraceQueue: Deque<Pair<Int, Int>> = ArrayDeque() // position and line number
-        val candidates: MutableList<Pair<LazyCloneInstance, String>> = mutableListOf()
-        var currentLoC = 1
-        var currentPosition = 0
-        var isInString = false
+    private class BlockExtractListener : KotlinParserBaseListener(), SCCBlockExtractListener {
+        private val list = mutableListOf<KotlinParser.BlockContext>()
 
-        tokenizeKotlinCode(code).asSequence()
-            .forEach {
-                if (it.type.endsWith("QUOTE_OPEN")) {
-                    isInString = true
-                } else if (it.type.endsWith("QUOTE_CLOSE")) {
-                    isInString = false
-                }
+        override fun getList(): List<ParserRuleContext> = list
 
-                if (it.type.contains("NL")) {
-                    currentLoC++
-                } else {
-                    currentLoC += it.text.filter { c -> c == '\n' }.count()
-                }
-
-                if (it.type == "LCURL" && !isInString) {
-                    leftBraceQueue.push(currentPosition to currentLoC)
-                } else if (it.type == "RCURL" && !isInString) {
-                    val (startPosition, startLine) = leftBraceQueue.pop()
-                    if (currentLoC - startLine > 3) {
-                        val tokenSequence: List<String> = KotlinTokenizer().tokenize(code.substring(startPosition, currentPosition + 1))
-                        candidates.add(LazyCloneInstance(filePath.toString(), startLine, currentLoC, cloneStatus, tokenSequence) to
-                            tokenSequence.joinToString(" "))
-                    }
-                }
-
-                currentPosition += it.text.length
-            }
-
-        return candidates
+        override fun enterBlock(ctx: KotlinParser.BlockContext) {
+            list.add(ctx)
+            super.enterBlock(ctx)
+        }
     }
 }

@@ -110,6 +110,8 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
 }
 """
         val blocks: List<Pair<LazyCloneInstance, String>> = KotlinSCCBlockExtractor().extract(code, "".toPath(), CloneStatus.STABLE)
-        assertEquals(3, blocks.size)
+
+        // fun comment and for stmt
+        assertEquals(2, blocks.size)
     }
 }

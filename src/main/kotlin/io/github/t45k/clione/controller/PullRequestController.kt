@@ -115,6 +115,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
             .withStatus(GHCheckRun.Status.COMPLETED)
             .withConclusion(GHCheckRun.Conclusion.SUCCESS)
             .add(GHCheckRunBuilder.Output("Success", "Notification is completed."))
+            .add(GHCheckRunBuilder.Action("rerun", "rerun CLIONE", "rerun"))
             .create()
 
     fun sendErrorStatus(errorMessage: String) =
@@ -122,5 +123,6 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
             .withStatus(GHCheckRun.Status.COMPLETED)
             .withConclusion(GHCheckRun.Conclusion.CANCELLED)
             .add(GHCheckRunBuilder.Output("Error", errorMessage))
+            .add(GHCheckRunBuilder.Action("rerun", "rerun CLIONE", "rerun"))
             .create()
 }

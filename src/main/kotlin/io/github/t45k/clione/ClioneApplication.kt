@@ -10,8 +10,8 @@ import java.nio.file.Files
 class ClioneApplication
 
 fun main(args: Array<String>) {
-    val storagePath = "storage".toRealPath()
-    deleteRecursive(storagePath)
-    Files.createDirectory(storagePath)
+    Files.list("storage".toRealPath())
+        .filter { it.fileName.toString() != ".gitkeep" }
+        .forEach(::deleteRecursive)
     runApplication<ClioneApplication>(*args)
 }

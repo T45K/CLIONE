@@ -4,7 +4,6 @@ import io.github.t45k.clione.entity.FileChangeType
 import io.github.t45k.clione.entity.FileDiff
 import io.github.t45k.clione.util.EMPTY_NAME_PATH
 import io.github.t45k.clione.util.deleteRecursive
-import io.github.t45k.clione.util.toRealPath
 import io.reactivex.rxjava3.core.Observable
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.diff.DiffAlgorithm
@@ -36,7 +35,7 @@ class GitController(private val git: Git) : AutoCloseable {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
         fun cloneIfNotExists(repositoryFullName: String, token: String, pullRequest: PullRequestController): GitController =
-            Observable.just("storage/${repositoryFullName}_${pullRequest.number}/.git".toRealPath())
+            Observable.just(Path.of("storage/${repositoryFullName}_${pullRequest.number}/.git"))
                 .map {
                     if (Files.exists(it)) {
                         FileRepository(it.toString())

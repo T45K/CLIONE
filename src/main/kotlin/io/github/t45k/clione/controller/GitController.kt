@@ -6,7 +6,6 @@ import io.github.t45k.clione.util.EMPTY_NAME_PATH
 import io.github.t45k.clione.util.deleteRecursive
 import io.reactivex.rxjava3.core.Observable
 import org.eclipse.jgit.api.Git
-import org.eclipse.jgit.api.errors.JGitInternalException
 import org.eclipse.jgit.diff.DiffAlgorithm
 import org.eclipse.jgit.diff.DiffEntry
 import org.eclipse.jgit.diff.DiffFormatter
@@ -28,28 +27,31 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser
 import org.eclipse.jgit.util.io.DisabledOutputStream
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.nio.file.Files
 import java.nio.file.Path
 
 class GitController(private val git: Git) : AutoCloseable {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-        fun clone(repositoryFullName: String, token: String, pullRequest: PullRequestController): GitController =
-            Observable.just(
-                try {
-                    Git.cloneRepository()
-                        .setURI("https://github.com/$repositoryFullName.git")
-                        .setDirectory(Path.of("storage", "${repositoryFullName}_${pullRequest.number}").toFile())
-                        .setCredentialsProvider(UsernamePasswordCredentialsProvider("token", token))
-                        .setCloneAllBranches(true)
-                        .call()
-                } catch (e: JGitInternalException) {
-                    FileRepository("storage/${repositoryFullName}_${pullRequest.number}/.git")
-                        .run { Git(this) }
-                }.run {
-                    GitController(this).apply { this.checkout(pullRequest.headCommitHash) }
+        fun cloneIfNotExists(repositoryFullName: String, token: String, pullRequest: PullRequestController): GitController =
+            Observable.just(Path.of("storage/${repositoryFullName}_${pullRequest.number}/.git"))
+                .map {
+                    if (Files.exists(it)) {
+                        FileRepository(it.toString())
+                            .run { Git(this) }
+                            .apply { this.pull().call() }
+                    } else {
+                        Git.cloneRepository()
+                            .setURI("https://github.com/$repositoryFullName.git")
+                            .setDirectory(it.parent.toFile())
+                            .setCredentialsProvider(UsernamePasswordCredentialsProvider("token", token))
+                            .setCloneAllBranches(true)
+                            .call()
+                    }.run {
+                        GitController(this).apply { this.checkout(pullRequest.headCommitHash) }
+                    }
                 }
-            )
                 .doOnSubscribe { logger.info("[START]\tclone $repositoryFullName") }
                 .doOnComplete { logger.info("[END]\tclone $repositoryFullName") }
                 .blockingSingle()

@@ -22,7 +22,7 @@ internal class SourcererCCControllerTest {
     @Test
     fun test() {
         val pullRequest: PullRequestController = generatePRMock(REPOSITORY_FULL_NAME, 0, COMMIT_HASH)
-        val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", pullRequest)
+        val git: GitController = GitController.cloneIfNotExists(REPOSITORY_FULL_NAME, "", pullRequest)
         val config = RunningConfig("src", Language.JAVA)
         val cloneDetector = SourcererCCController(git.getProjectPath().resolve(config.src), config)
 

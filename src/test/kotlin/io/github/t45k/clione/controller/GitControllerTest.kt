@@ -19,7 +19,7 @@ internal class GitControllerTest {
     }
 
     private val pullRequest: PullRequestController = generatePRMock(REPOSITORY_FULL_NAME, 0, NEW_COMMIT_HASH)
-    private val git: GitController = GitController.clone(REPOSITORY_FULL_NAME, "", pullRequest)
+    private val git: GitController = GitController.cloneIfNotExists(REPOSITORY_FULL_NAME, "", pullRequest)
 
     @Test
     fun testCloneSuccess() {
@@ -42,7 +42,7 @@ internal class GitControllerTest {
             .getRepository("alibaba/fastjson")
             .getPullRequest(3268)
             .run { PullRequestController(this) }
-        val git: GitController = GitController.clone("alibaba/fastjson", "", pullRequest)
+        val git: GitController = GitController.cloneIfNotExists("alibaba/fastjson", "", pullRequest)
         val changedFiles: Pair<Set<Path>, Set<Path>> = git.findChangedFiles(
             pullRequest.getComparisonCommits().first,
             pullRequest.getComparisonCommits().second

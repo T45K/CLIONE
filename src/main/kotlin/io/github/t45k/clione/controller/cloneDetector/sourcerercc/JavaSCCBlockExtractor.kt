@@ -43,6 +43,6 @@ class JavaSCCBlockExtractor : SCCBlockExtractor {
 
         private fun Block.isMoreThanThreeLines() =
             compilationUnit.getLineNumber(this.startPosition + this.length - 1) -
-                compilationUnit.getLineNumber(this.startPosition) > 3
+                compilationUnit.getLineNumber(this.startPosition) + 1 > 3
     }
 }

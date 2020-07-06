@@ -57,7 +57,7 @@ class GitController(private val git: Git) : AutoCloseable {
                 .blockingSingle()
     }
 
-    private val repositoryPath: Path = git.repository.directory.parentFile.absoluteFile.toPath()
+    private val repositoryPath: Path = git.repository.directory.parentFile.absoluteFile.toPath().toRealPath()
 
     override fun close() {
         Observable.just(repositoryPath)
@@ -119,7 +119,7 @@ class GitController(private val git: Git) : AutoCloseable {
         return FileDiff(FileChangeType.MODIFY, mapLine(editList, size), completePath(entry.newPath))
     }
 
-    private fun completePath(relativeFileLocation: String): Path = repositoryPath.resolve(relativeFileLocation).toRealPath()
+    private fun completePath(relativeFileLocation: String): Path = repositoryPath.resolve(relativeFileLocation)
 
     /**
      * Mapping line number of the file of old revision to new one

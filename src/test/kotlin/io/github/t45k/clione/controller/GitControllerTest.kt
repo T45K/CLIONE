@@ -57,9 +57,12 @@ internal class GitControllerTest {
     @Test
     fun testCalcFileDiff() {
         val filePath = git.getProjectPath().resolve("src/Sample.java").toRealPath()
-        val (type, lineMapping, newFileName) = git.calcFileDiff(filePath, OLD_COMMIT_HASH, NEW_COMMIT_HASH)
+        val (type, addedLines, deletedLines, newFileName) = git.calcFileDiff(filePath, OLD_COMMIT_HASH, NEW_COMMIT_HASH)
         assertEquals(FileChangeType.MODIFY, type)
-        lineMapping.forEach { assertEquals(0, it) }
+        (0..2).forEach { assertEquals(0, addedLines[it]) }
+        (3 until addedLines.size).forEach { assertEquals(1, addedLines[it]) }
+        (0..2).forEach { assertEquals(0, deletedLines[it]) }
+        (3 until deletedLines.size).forEach { assertEquals(1, deletedLines[it]) }
         assertEquals(filePath, newFileName)
     }
 

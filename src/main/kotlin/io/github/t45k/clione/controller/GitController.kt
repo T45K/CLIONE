@@ -92,7 +92,8 @@ class GitController(private val git: Git) : AutoCloseable {
 
 
     /**
-     * This method must be called about a changed file.n
+     * This method must be called about a changed file.
+     * Current revision should be old.
      *
      * If a change between the commits is only change of file name, line mapping is empty
      */
@@ -102,9 +103,9 @@ class GitController(private val git: Git) : AutoCloseable {
         val entry: DiffEntry = executeDiffCommand(oldCommitHash, newCommitHash).first { it.oldPath == fileName }
 
         if (entry.changeType == DiffEntry.ChangeType.DELETE) {
-            return FileDiff(FileChangeType.DELETE, emptyList(), EMPTY_NAME_PATH)
+            return FileDiff(FileChangeType.DELETE, emptyList(), emptyList(), EMPTY_NAME_PATH)
         } else if (entry.changeType == DiffEntry.ChangeType.ADD) {
-            return FileDiff(FileChangeType.ADD, emptyList(), EMPTY_NAME_PATH)
+            return FileDiff(FileChangeType.ADD, emptyList(), emptyList(), EMPTY_NAME_PATH)
         }
 
         val oldRawText: RawText = readBlob(entry.oldId)
@@ -113,30 +114,35 @@ class GitController(private val git: Git) : AutoCloseable {
             .diff(RawTextComparator.DEFAULT, oldRawText, newRawText)
 
         if (editList.isEmpty()) {
-            return FileDiff(FileChangeType.MODIFY, emptyList(), completePath(entry.newPath))
+            return FileDiff(FileChangeType.MODIFY, emptyList(), emptyList(), completePath(entry.newPath))
         }
-        val size: Int = String(oldRawText.rawContent).split("\n").size
-        return FileDiff(FileChangeType.MODIFY, mapLine(editList, size), completePath(entry.newPath))
+
+        val oldSize: Int = String(oldRawText.rawContent).split("\n").size
+        val newSize: Int = String(newRawText.rawContent).split("\n").size
+        val (addedLines, deletedLines) = mapLine(editList, oldSize, newSize)
+        return FileDiff(FileChangeType.MODIFY, addedLines, deletedLines, completePath(entry.newPath))
     }
 
     private fun completePath(relativeFileLocation: String): Path = repositoryPath.resolve(relativeFileLocation)
 
     /**
-     * Mapping line number of the file of old revision to new one
-     * Each value of list is increase/decrease value between old line number and new one
+     * Calculate added and deleted lines.
+     * When clone tracking is executed, lines of new clone instances are subtracted add lines
+     * and lines of old clone instances are subtracted deleted lines
      */
-    private fun mapLine(editList: EditList, size: Int): List<Int> {
-        val lineMapping: Array<Int> = Array(size + 1) { 0 }
+    private fun mapLine(editList: EditList, oldSize: Int, newSize: Int): Pair<List<Int>, List<Int>> {
+        val addedLines: Array<Int> = Array(newSize + 1) { 0 }
+        val deletedLines: Array<Int> = Array(oldSize + 1) { 0 }
 
         for (edit: Edit in editList) {
             when (edit.type) {
-                Edit.Type.INSERT -> lineMapping[edit.beginA + 1] += edit.endB - edit.beginB
+                Edit.Type.INSERT -> (edit.beginB + 1..edit.endB).forEach { addedLines[it]++ }
 
-                Edit.Type.DELETE -> (edit.beginA + 1..edit.endA).forEach { lineMapping[it]-- }
+                Edit.Type.DELETE -> (edit.beginA + 1..edit.endA).forEach { deletedLines[it]++ }
 
                 Edit.Type.REPLACE -> {
-                    lineMapping[edit.beginA + 1] += edit.endB - edit.beginB
-                    (edit.beginA + 1..edit.endA).forEach { lineMapping[it]-- }
+                    (edit.beginB + 1..edit.endB).forEach { addedLines[it]++ }
+                    (edit.beginA + 1..edit.endA).forEach { deletedLines[it]++ }
                 }
 
                 Edit.Type.EMPTY -> {
@@ -147,8 +153,9 @@ class GitController(private val git: Git) : AutoCloseable {
             }
         }
 
-        (1..size).forEach { lineMapping[it] += lineMapping[it - 1] }
-        return lineMapping.toList()
+        (1 until addedLines.size).forEach { addedLines[it] += addedLines[it - 1] }
+        (1 until deletedLines.size).forEach { deletedLines[it] += deletedLines[it - 1] }
+        return addedLines.toList() to deletedLines.toList()
     }
 
     private fun readBlob(blobId: AbbreviatedObjectId): RawText =
@@ -170,7 +177,7 @@ class GitController(private val git: Git) : AutoCloseable {
             .scan(oldTreeParser, newTreeParser)
     }
 
-    private fun getCommonAncestorCommit(oldCommitHash: String, newCommitHash: String): String =
+    fun getCommonAncestorCommit(oldCommitHash: String, newCommitHash: String): String =
         RevWalk(git.repository)
             .apply { this.revFilter = RevFilter.MERGE_BASE }
             .apply { this.markStart(this.parseCommit(ObjectId.fromString(oldCommitHash))) }

@@ -25,7 +25,7 @@ class JavaSCCBlockExtractor : SCCBlockExtractor {
                     .blocks
                     .map {
                         LazyCloneInstance(filePath, compilationUnit.getLineNumber(it.startPosition),
-                            compilationUnit.getLineNumber(it.startPosition + it.length - 1), cloneStatus,
+                            compilationUnit.getLineNumber(it.startPosition + it.length), cloneStatus,
                             JDTTokenizer().tokenize(it.toString())) to it.toString()
                     }
             }
@@ -42,7 +42,7 @@ class JavaSCCBlockExtractor : SCCBlockExtractor {
         }
 
         private fun Block.isMoreThanThreeLines() =
-            compilationUnit.getLineNumber(this.startPosition + this.length - 1) -
+            compilationUnit.getLineNumber(this.startPosition + this.length) -
                 compilationUnit.getLineNumber(this.startPosition) + 1 > 3
     }
 }

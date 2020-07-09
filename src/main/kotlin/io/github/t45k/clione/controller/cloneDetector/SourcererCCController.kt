@@ -1,6 +1,7 @@
 package io.github.t45k.clione.controller.cloneDetector
 
 import com.mondego.indexbased.SearchManager
+import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.CloneCandidateExtractor
 import io.github.t45k.clione.core.RunningConfig
 import io.github.t45k.clione.entity.BagOfToken
 import io.github.t45k.clione.entity.CloneInstance
@@ -68,7 +69,8 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) : Abstr
             .map { it.toRealPath() }
             .flatMap {
                 val status = if (changedFiles.contains(it)) initialCloneStatus else CloneStatus.STABLE
-                config.lang.blockExtractor.extract(Files.readString(it), it, status).asSequence()
+                val cloneCandidateExtractor = CloneCandidateExtractor.create(config)
+                cloneCandidateExtractor.extract(Files.readString(it), it, status).asSequence()
             }
             .mapIndexed { index, (candidate, block) -> (index + 1 to candidate.setId(index)) to block.toBagOfToken() }
             .fold(mutableMapOf<Int, CloneInstance>() to mutableListOf<BagOfToken>()) { acc, (indexedCloneInstance: Pair<Int, CloneInstance>, bagOfToken: BagOfToken) ->

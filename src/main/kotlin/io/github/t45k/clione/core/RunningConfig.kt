@@ -1,9 +1,5 @@
 package io.github.t45k.clione.core
 
-import io.github.t45k.clione.controller.cloneDetector.sourcerercc.JavaSCCBlockExtractor
-import io.github.t45k.clione.controller.cloneDetector.sourcerercc.KotlinSCCBlockExtractor
-import io.github.t45k.clione.controller.cloneDetector.sourcerercc.Python3SCCBlockExtractor
-import io.github.t45k.clione.controller.cloneDetector.sourcerercc.SCCBlockExtractor
 import io.github.t45k.clione.core.tokenizer.JDTTokenizer
 import io.github.t45k.clione.core.tokenizer.KotlinTokenizer
 import io.github.t45k.clione.core.tokenizer.Python3Tokenizer
@@ -28,12 +24,11 @@ data class RunningConfig(
 enum class Language(
     private val string: String,
     val extension: String,
-    val tokenizer: Tokenizer,
-    val blockExtractor: SCCBlockExtractor // for SCC
+    val tokenizer: Tokenizer
 ) {
-    JAVA("java", ".java", JDTTokenizer(), JavaSCCBlockExtractor()),
-    KOTLIN("kotlin", ".kt", KotlinTokenizer(), KotlinSCCBlockExtractor()),
-    PYTHON("python3", ".py", Python3Tokenizer(), Python3SCCBlockExtractor());
+    JAVA("java", ".java", JDTTokenizer()),
+    KOTLIN("kotlin", ".kt", KotlinTokenizer()),
+    PYTHON("python3", ".py", Python3Tokenizer());
 
     override fun toString(): String = this.string
 }

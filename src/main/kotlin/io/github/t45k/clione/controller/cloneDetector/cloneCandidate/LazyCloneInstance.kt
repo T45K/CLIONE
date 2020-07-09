@@ -1,4 +1,4 @@
-package io.github.t45k.clione.controller.cloneDetector.sourcerercc
+package io.github.t45k.clione.controller.cloneDetector.cloneCandidate
 
 import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneStatus

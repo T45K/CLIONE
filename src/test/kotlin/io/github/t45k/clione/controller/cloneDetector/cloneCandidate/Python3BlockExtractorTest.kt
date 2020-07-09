@@ -1,11 +1,12 @@
-package io.github.t45k.clione.controller.cloneDetector.sourcerercc
+package io.github.t45k.clione.controller.cloneDetector.cloneCandidate
 
+import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.python3.Python3BlockExtractor
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.util.EMPTY_NAME_PATH
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-internal class Python3SCCBlockExtractorTest {
+internal class Python3BlockExtractorTest {
 
     @Test
     fun testExtract() {
@@ -222,7 +223,7 @@ if __name__ == "__main__":
 # Total cost of path:  21
 """
 
-        val blocks = Python3SCCBlockExtractor().extract(python3Code, EMPTY_NAME_PATH, CloneStatus.STABLE)
+        val blocks = Python3BlockExtractor().extract(python3Code, EMPTY_NAME_PATH, CloneStatus.STABLE)
         assertEquals(27, blocks.size)
     }
 }

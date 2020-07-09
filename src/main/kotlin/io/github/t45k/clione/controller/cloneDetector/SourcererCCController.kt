@@ -1,7 +1,6 @@
-package io.github.t45k.clione.controller.cloneDetector.sourcerercc
+package io.github.t45k.clione.controller.cloneDetector
 
 import com.mondego.indexbased.SearchManager
-import io.github.t45k.clione.controller.cloneDetector.AbstractCloneDetectorController
 import io.github.t45k.clione.core.RunningConfig
 import io.github.t45k.clione.entity.BagOfToken
 import io.github.t45k.clione.entity.CloneInstance

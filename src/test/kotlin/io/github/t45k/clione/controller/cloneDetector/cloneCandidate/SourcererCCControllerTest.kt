@@ -1,7 +1,8 @@
-package io.github.t45k.clione.controller.cloneDetector.sourcerercc
+package io.github.t45k.clione.controller.cloneDetector.cloneCandidate
 
 import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.controller.PullRequestController
+import io.github.t45k.clione.controller.cloneDetector.SourcererCCController
 import io.github.t45k.clione.core.Language
 import io.github.t45k.clione.core.RunningConfig
 import io.github.t45k.clione.entity.CloneSets

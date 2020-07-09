@@ -1,12 +1,14 @@
-package io.github.t45k.clione.controller.cloneDetector.sourcerercc
+package io.github.t45k.clione.controller.cloneDetector.cloneCandidate.kotlin
 
 import KotlinLexer
 import KotlinParser
 import KotlinParserBaseListener
+import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.AntlrCloneCandidateExtractor
+import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.CloneCandidatesExtractListener
 import io.github.t45k.clione.core.tokenizer.KotlinTokenizer
 import org.antlr.v4.runtime.ParserRuleContext
 
-class KotlinSCCBlockExtractor : AntlrSCCBlockExtractor(
+class KotlinBlockExtractor : AntlrCloneCandidateExtractor(
     { KotlinLexer(it) },
     { KotlinParser(it) },
     { (it as KotlinParser).kotlinFile() },
@@ -14,7 +16,7 @@ class KotlinSCCBlockExtractor : AntlrSCCBlockExtractor(
     { KotlinTokenizer().tokenize(it) }
 ) {
 
-    private class BlockExtractListener : KotlinParserBaseListener(), SCCBlockExtractListener {
+    private class BlockExtractListener : KotlinParserBaseListener(), CloneCandidatesExtractListener {
         private val list = mutableListOf<KotlinParser.BlockContext>()
 
         override fun getList(): List<ParserRuleContext> = list

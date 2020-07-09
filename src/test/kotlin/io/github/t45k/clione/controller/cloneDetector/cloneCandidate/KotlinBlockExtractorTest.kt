@@ -1,11 +1,12 @@
-package io.github.t45k.clione.controller.cloneDetector.sourcerercc
+package io.github.t45k.clione.controller.cloneDetector.cloneCandidate
 
+import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.kotlin.KotlinBlockExtractor
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.util.EMPTY_NAME_PATH
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-internal class KotlinSCCBlockExtractorTest {
+internal class KotlinBlockExtractorTest {
 
     @Test
     fun test() {
@@ -109,7 +110,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
     fun getNumber(): Int = pullRequest.number
 }
 """
-        val blocks: List<Pair<LazyCloneInstance, String>> = KotlinSCCBlockExtractor().extract(code, EMPTY_NAME_PATH, CloneStatus.STABLE)
+        val blocks: List<Pair<LazyCloneInstance, String>> = KotlinBlockExtractor().extract(code, EMPTY_NAME_PATH, CloneStatus.STABLE)
 
         // fun comment and for stmt
         assertEquals(2, blocks.size)

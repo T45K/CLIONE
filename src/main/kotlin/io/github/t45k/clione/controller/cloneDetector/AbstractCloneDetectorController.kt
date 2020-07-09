@@ -1,6 +1,5 @@
 package io.github.t45k.clione.controller.cloneDetector
 
-import io.github.t45k.clione.controller.cloneDetector.sourcerercc.SourcererCCController
 import io.github.t45k.clione.core.CloneDetector
 import io.github.t45k.clione.core.RunningConfig
 import java.nio.file.Path

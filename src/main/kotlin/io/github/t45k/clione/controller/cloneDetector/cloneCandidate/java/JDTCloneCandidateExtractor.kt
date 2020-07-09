@@ -1,16 +1,20 @@
-package io.github.t45k.clione.controller.cloneDetector.sourcerercc
+package io.github.t45k.clione.controller.cloneDetector.cloneCandidate.java
 
+import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.CloneCandidateExtractor
+import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.LazyCloneInstance
 import io.github.t45k.clione.core.tokenizer.JDTTokenizer
 import io.github.t45k.clione.entity.CloneStatus
 import org.eclipse.core.runtime.NullProgressMonitor
 import org.eclipse.jdt.core.dom.AST
+import org.eclipse.jdt.core.dom.ASTNode
 import org.eclipse.jdt.core.dom.ASTParser
 import org.eclipse.jdt.core.dom.ASTVisitor
-import org.eclipse.jdt.core.dom.Block
 import org.eclipse.jdt.core.dom.CompilationUnit
 import java.nio.file.Path
 
-class JavaSCCBlockExtractor : SCCBlockExtractor {
+abstract class JDTCloneCandidateExtractor(
+    private val instantiateVisitor: (compilationUnit: CompilationUnit) -> CloneCandidateExtractVisitor
+) : CloneCandidateExtractor {
 
     /**
      * Extract clone candidates by using JDT AST.
@@ -20,29 +24,21 @@ class JavaSCCBlockExtractor : SCCBlockExtractor {
             .apply { this.setSource(code.toCharArray()) }
             .run { this.createAST(NullProgressMonitor()) as CompilationUnit }
             .let { compilationUnit: CompilationUnit ->
-                BlockExtractVisitor(compilationUnit)
+                instantiateVisitor(compilationUnit)
                     .apply { compilationUnit.accept(this) }
-                    .blocks
+                    .list
                     .map {
                         LazyCloneInstance(filePath, compilationUnit.getLineNumber(it.startPosition),
                             compilationUnit.getLineNumber(it.startPosition + it.length), cloneStatus,
                             JDTTokenizer().tokenize(it.toString())) to it.toString()
                     }
             }
+}
 
-    private class BlockExtractVisitor(private val compilationUnit: CompilationUnit) : ASTVisitor() {
-        val blocks: MutableList<Block> = mutableListOf()
+abstract class CloneCandidateExtractVisitor(private val compilationUnit: CompilationUnit) : ASTVisitor() {
+    val list: MutableList<ASTNode> = mutableListOf()
 
-        override fun visit(node: Block?): Boolean {
-            if (node!!.statements().isEmpty() || !node.isMoreThanThreeLines()) {
-                return false
-            }
-            blocks.add(node)
-            return super.visit(node)
-        }
-
-        private fun Block.isMoreThanThreeLines() =
-            compilationUnit.getLineNumber(this.startPosition + this.length) -
-                compilationUnit.getLineNumber(this.startPosition) + 1 > 3
-    }
+    protected fun ASTNode.isMoreThanThreeLines() =
+        compilationUnit.getLineNumber(this.startPosition + this.length) -
+            compilationUnit.getLineNumber(this.startPosition) + 1 > 3
 }

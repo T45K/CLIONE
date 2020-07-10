@@ -24,8 +24,8 @@ class Exp1 {
             .filter { it.isMerged }
             .forEach { ghPR ->
                 val pullRequest = PullRequestController(ghPR)
-                GitController.cloneIfNotExists(repositoryFullName, "", pullRequest).use { git ->
-                    try {
+                try {
+                    GitController.cloneIfNotExists(repositoryFullName, "", pullRequest).use { git ->
                         val (tmp, head) = pullRequest.getComparisonCommits()
                         val base = git.getCommonAncestorCommit(tmp, head)
                         val (oldChangedFiles, newChangedFiles) = git.findChangedFiles(base, head)
@@ -45,9 +45,10 @@ class Exp1 {
 
                         targetClonesPRCount++
                         prInfos.add("${pullRequest.number} $base $head")
-                    } catch (e: Exception) {
-                        // do nothing
+
                     }
+                } catch (e: Exception) {
+                    // do nothing
                 }
             }
 

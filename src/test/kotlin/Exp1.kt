@@ -12,7 +12,7 @@ class Exp1 {
 
     @Test
     fun investigateMaintenanceTargetClonesProportion() {
-        val repositoryFullName = "dnsjava/dnsjava"
+        val repositoryFullName = "jfree/jfreechart"
         var javaFileChangedPRCount = 0
         var targetClonesPRCount = 0
         val prInfos = mutableListOf<String>()
@@ -29,14 +29,18 @@ class Exp1 {
                         val (tmp, head) = pullRequest.getComparisonCommits()
                         val base = git.getCommonAncestorCommit(tmp, head)
                         val (oldChangedFiles, newChangedFiles) = git.findChangedFiles(base, head)
+                        val config = if (Files.exists(git.getProjectPath().resolve("src"))) {
+                            RunningConfig("src/main/java")
+                        } else {
+                            RunningConfig("source")
+                        }
                         val isJavaFileChanged = setOf(*oldChangedFiles.toTypedArray(), *newChangedFiles.toTypedArray())
-                            .any { it.toString().contains("src/main/java") && it.toString().endsWith(".java") }
+                            .any { it.toString().contains(config.src) && it.toString().endsWith(".java") }
                         if (!isJavaFileChanged) {
                             return@use
                         }
 
                         javaFileChangedPRCount++
-                        val config = RunningConfig("src/main/java")
                         val tracker = CloneTracker(git, pullRequest, config)
                         val (oldClones, newClones) = tracker.track()
                         if (oldClones.isEmpty() && newClones.isEmpty()) {

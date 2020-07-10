@@ -16,6 +16,7 @@ class Exp1 {
         var javaFileChangedPRCount = 0
         var targetClonesPRCount = 0
         val prInfos = mutableListOf<String>()
+        val reasons = mutableListOf<String>()
         GitHubBuilder.fromEnvironment()
             //.withPassword("T45K","")
             .build()
@@ -37,6 +38,7 @@ class Exp1 {
                         val isJavaFileChanged = setOf(*oldChangedFiles.toTypedArray(), *newChangedFiles.toTypedArray())
                             .any { it.toString().contains(config.src) && it.toString().endsWith(".java") }
                         if (!isJavaFileChanged) {
+                            reasons.add("${ghPR.number} is not changed java files")
                             return@use
                         }
 
@@ -44,20 +46,22 @@ class Exp1 {
                         val tracker = CloneTracker(git, pullRequest, config)
                         val (oldClones, newClones) = tracker.track()
                         if (oldClones.isEmpty() && newClones.isEmpty()) {
+                            reasons.add("${ghPR.number} has no problem")
                             return@use
                         }
 
                         targetClonesPRCount++
                         prInfos.add("${pullRequest.number} $base $head")
-
+                        reasons.add("${ghPR.number} has problem")
                     }
                 } catch (e: Exception) {
-                    // do nothing
+                    reasons.add("${ghPR.number} is not checkoutable")
                 }
             }
 
         prInfos.add("all: $javaFileChangedPRCount")
         prInfos.add("target: $targetClonesPRCount")
         Files.writeString(Path.of(repositoryFullName.replace("/", "_")), prInfos.joinToString("\n"))
+        Files.writeString(Path.of(repositoryFullName.replace("/", "_") + "_reason"), reasons.joinToString("\n"))
     }
 }

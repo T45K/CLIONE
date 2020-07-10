@@ -1,5 +1,6 @@
 package io.github.t45k.clione.core
 
+import io.github.t45k.clione.core.tokenizer.CppTokenizer
 import io.github.t45k.clione.core.tokenizer.JDTTokenizer
 import io.github.t45k.clione.core.tokenizer.KotlinTokenizer
 import io.github.t45k.clione.core.tokenizer.Python3Tokenizer
@@ -28,7 +29,8 @@ enum class Language(
 ) {
     JAVA("java", ".java", JDTTokenizer()),
     KOTLIN("kotlin", ".kt", KotlinTokenizer()),
-    PYTHON("python3", ".py", Python3Tokenizer());
+    PYTHON("python3", ".py", Python3Tokenizer()),
+    CPP("cpp", ".cpp", CppTokenizer());
 
     override fun toString(): String = this.string
 }

@@ -1,16 +1,16 @@
 package io.github.t45k.clione.controller.cloneDetector.cloneCandidate
 
 import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.python3.Python3BlockExtractor
+import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.python3.Python3FunctionExtractor
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.util.EMPTY_NAME_PATH
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-internal class Python3BlockExtractorTest {
-
-    @Test
-    fun testExtract() {
-        val python3Code = """# Title: Dijkstra's Algorithm for finding single source shortest path from scratch
+internal class Python3ExtractorTest {
+    companion object {
+        // https://github.com/TheAlgorithms/Python/blob/master/graphs/dijkstra_algorithm.py
+        private const val code = """# Title: Dijkstra's Algorithm for finding single source shortest path from scratch
 # Author: Shubham Malik
 # References: https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
 
@@ -222,8 +222,19 @@ if __name__ == "__main__":
 # 0 -> 7 -> 6 -> 5 -> 4
 # Total cost of path:  21
 """
+    }
 
-        val blocks = Python3BlockExtractor().extract(python3Code, EMPTY_NAME_PATH, CloneStatus.STABLE)
+    @Test
+    fun testBlock() {
+        val blocks: List<Pair<LazyCloneInstance, String>> =
+            Python3BlockExtractor().extract(code, EMPTY_NAME_PATH, CloneStatus.STABLE)
         assertEquals(27, blocks.size)
+    }
+
+    @Test
+    fun testFunction() {
+        val functions: List<Pair<LazyCloneInstance, String>> =
+            Python3FunctionExtractor().extract(code, EMPTY_NAME_PATH, CloneStatus.STABLE)
+        assertEquals(12, functions.size)
     }
 }

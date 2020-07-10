@@ -9,7 +9,8 @@ import kotlin.test.assertEquals
 
 internal class CppExtractorTest {
     companion object {
-        const val code = """//
+        // https://github.com/AllAlgorithms/cpp/blob/master/graphs/dijkstra.cpp
+        private const val code = """//
 // Dijkstra search algorithm implementation in C++
 //
 // The All ▲lgorithms Project

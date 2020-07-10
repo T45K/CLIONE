@@ -33,6 +33,7 @@ dependencies {
     implementation(fileTree("./lib/indexbased.SearchManager.jar"))
     implementation(fileTree("./lib/kotlin-antlr.jar"))
     implementation(fileTree("./lib/python3-antlr.jar"))
+    implementation(fileTree("./lib/cpp-antlr.jar"))
     implementation("org.bouncycastle:bcprov-jdk15on:1.65")
     implementation("org.eclipse.jgit:org.eclipse.jgit:5.7.0.202003110725-r")
     implementation("io.reactivex.rxjava3:rxkotlin:3.0.0")

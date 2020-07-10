@@ -24,26 +24,30 @@ class Exp1 {
             .filter { it.isMerged }
             .forEach { ghPR ->
                 val pullRequest = PullRequestController(ghPR)
-                GitController.cloneIfNotExists(repositoryFullName, "", pullRequest).use { git ->
-                    val (tmp, head) = pullRequest.getComparisonCommits()
-                    val base = git.getCommonAncestorCommit(tmp, head)
-                    val (oldChangedFiles, newChangedFiles) = git.findChangedFiles(base, head)
-                    val isJavaFileChanged = setOf(*oldChangedFiles.toTypedArray(), *newChangedFiles.toTypedArray())
-                        .any { it.toString().contains("src/main/java") && it.toString().endsWith(".java") }
-                    if (!isJavaFileChanged) {
-                        return@forEach
-                    }
+                try {
+                    GitController.cloneIfNotExists(repositoryFullName, "", pullRequest).use { git ->
+                        val (tmp, head) = pullRequest.getComparisonCommits()
+                        val base = git.getCommonAncestorCommit(tmp, head)
+                        val (oldChangedFiles, newChangedFiles) = git.findChangedFiles(base, head)
+                        val isJavaFileChanged = setOf(*oldChangedFiles.toTypedArray(), *newChangedFiles.toTypedArray())
+                            .any { it.toString().contains("src/main/java") && it.toString().endsWith(".java") }
+                        if (!isJavaFileChanged) {
+                            return@forEach
+                        }
 
-                    javaFileChangedPRCount++
-                    val config = RunningConfig("src/main/java")
-                    val tracker = CloneTracker(git, pullRequest, config)
-                    val (oldClones, newClones) = tracker.track()
-                    if (oldClones.isEmpty() && newClones.isEmpty()) {
-                        return@forEach
-                    }
+                        javaFileChangedPRCount++
+                        val config = RunningConfig("src/main/java")
+                        val tracker = CloneTracker(git, pullRequest, config)
+                        val (oldClones, newClones) = tracker.track()
+                        if (oldClones.isEmpty() && newClones.isEmpty()) {
+                            return@forEach
+                        }
 
-                    targetClonesPRCount++
-                    prInfos.add("${pullRequest.number} $base $head")
+                        targetClonesPRCount++
+                        prInfos.add("${pullRequest.number} $base $head")
+                    }
+                } catch (e: Exception) {
+                    println(ghPR.number)
                 }
             }
 

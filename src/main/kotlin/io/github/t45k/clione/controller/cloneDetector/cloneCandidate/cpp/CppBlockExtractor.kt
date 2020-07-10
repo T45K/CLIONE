@@ -5,7 +5,7 @@ import CPP14Lexer
 import CPP14Parser
 import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.AntlrCloneCandidateExtractor
 import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.CloneCandidatesExtractListener
-import io.github.t45k.clione.core.tokenizer.CPPTokenizer
+import io.github.t45k.clione.core.tokenizer.CppTokenizer
 import org.antlr.v4.runtime.ParserRuleContext
 
 class CppBlockExtractor : AntlrCloneCandidateExtractor(
@@ -13,7 +13,7 @@ class CppBlockExtractor : AntlrCloneCandidateExtractor(
     { CPP14Parser(it) },
     { (it as CPP14Parser).translationunit() },
     { BlockExtractListener() },
-    { CPPTokenizer().tokenize(it) }
+    { CppTokenizer().tokenize(it) }
 ) {
 
     private class BlockExtractListener : CPP14BaseListener(), CloneCandidatesExtractListener {

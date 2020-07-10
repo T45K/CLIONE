@@ -5,7 +5,7 @@ import io.github.t45k.clione.util.toCharStream
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.Token
 
-class CPPTokenizer : Tokenizer {
+class CppTokenizer : Tokenizer {
 
     companion object {
         const val BLOCK_COMMENT = 149

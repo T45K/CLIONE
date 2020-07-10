@@ -32,7 +32,7 @@ class Exp1 {
                         val isJavaFileChanged = setOf(*oldChangedFiles.toTypedArray(), *newChangedFiles.toTypedArray())
                             .any { it.toString().contains("src/main/java") && it.toString().endsWith(".java") }
                         if (!isJavaFileChanged) {
-                            return@forEach
+                            return@use
                         }
 
                         javaFileChangedPRCount++
@@ -40,7 +40,7 @@ class Exp1 {
                         val tracker = CloneTracker(git, pullRequest, config)
                         val (oldClones, newClones) = tracker.track()
                         if (oldClones.isEmpty() && newClones.isEmpty()) {
-                            return@forEach
+                            return@use
                         }
 
                         targetClonesPRCount++

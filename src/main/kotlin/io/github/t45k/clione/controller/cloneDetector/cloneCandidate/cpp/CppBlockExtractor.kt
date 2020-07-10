@@ -8,22 +8,22 @@ import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.CloneCandid
 import io.github.t45k.clione.core.tokenizer.CPPTokenizer
 import org.antlr.v4.runtime.ParserRuleContext
 
-class CPPFunctionExtractor : AntlrCloneCandidateExtractor(
+class CppBlockExtractor : AntlrCloneCandidateExtractor(
     { CPP14Lexer(it) },
     { CPP14Parser(it) },
     { (it as CPP14Parser).translationunit() },
-    { FunctionExtractListener() },
+    { BlockExtractListener() },
     { CPPTokenizer().tokenize(it) }
 ) {
 
-    private class FunctionExtractListener : CPP14BaseListener(), CloneCandidatesExtractListener {
-        private val list = mutableListOf<CPP14Parser.FunctiondefinitionContext>()
+    private class BlockExtractListener : CPP14BaseListener(), CloneCandidatesExtractListener {
+        private val list = mutableListOf<CPP14Parser.CompoundstatementContext>()
 
         override fun getList(): List<ParserRuleContext> = list
 
-        override fun enterFunctiondefinition(ctx: CPP14Parser.FunctiondefinitionContext) {
+        override fun enterCompoundstatement(ctx: CPP14Parser.CompoundstatementContext) {
             list.add(ctx)
-            super.enterFunctiondefinition(ctx)
+            super.enterCompoundstatement(ctx)
         }
     }
 }

@@ -52,5 +52,7 @@ class Exp1 {
             }
 
         Files.writeString(Path.of("result"), prInfos.joinToString("\n"))
+        println("all: $javaFileChangedPRCount")
+        println("target: $targetClonesPRCount")
     }
 }

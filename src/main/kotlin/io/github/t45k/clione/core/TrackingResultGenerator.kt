@@ -2,6 +2,7 @@ package io.github.t45k.clione.core
 
 import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneStatus
+import io.github.t45k.clione.entity.IdCloneMap
 import io.github.t45k.clione.entity.InstancedCloneSets
 
 /**
@@ -14,20 +15,27 @@ import io.github.t45k.clione.entity.InstancedCloneSets
  * oldCloneSets
  * some clone instances are DEL and others are STABLE -> unmerged
  */
-class TrackingResultGenerator {
-    fun generate(oldCloneSets: InstancedCloneSets, newCloneSets: InstancedCloneSets): TrackingResult {
-        val unmergedCloneSets: InstancedCloneSets = oldCloneSets.filter { cloneSet ->
+class TrackingResultGenerator(
+    private val oldCloneSets: InstancedCloneSets,
+    private val newCloneSets: InstancedCloneSets,
+    private val newIdCloneMap: IdCloneMap
+) {
+    fun generate(): TrackingResult {
+        if (oldCloneSets.isEmpty() && newCloneSets.isEmpty()) {
+            return TrackingResult(emptyList(), emptyList(), emptyList(), emptyList())
+        }
+
+        val cloneSets: InstancedCloneSets = mapCloneSets()
+        val unmergedCloneSets: InstancedCloneSets = cloneSets.filter { cloneSet ->
             val stableClones = cloneSet.count { it.status == CloneStatus.STABLE }
             stableClones > 0 && stableClones + cloneSet.count { it.status == CloneStatus.DELETE } == cloneSet.size
-        }
-        if (unmergedCloneSets.isEmpty() && newCloneSets.isEmpty()) {
-            return TrackingResult(emptyList(), emptyList(), emptyList(), emptyList())
         }
 
         val inconsistentlyChangedCloneSets = mutableListOf<List<CloneInstance>>()
         val newlyAddedCloneSets = mutableListOf<List<CloneInstance>>()
         val newCloneAddedCloneSets = mutableListOf<List<CloneInstance>>()
-        newCloneSets.forEach { cloneSet ->
+
+        cloneSets.forEach { cloneSet ->
             when {
                 cloneSet.isNewlyAddedCloneSets() -> newlyAddedCloneSets.add(cloneSet)
                 cloneSet.isNewCloneAddedCloneSets() -> newCloneAddedCloneSets.add(cloneSet)
@@ -38,8 +46,24 @@ class TrackingResultGenerator {
         return TrackingResult(inconsistentlyChangedCloneSets, newlyAddedCloneSets, newCloneAddedCloneSets, unmergedCloneSets)
     }
 
+    private fun mapCloneSets(): InstancedCloneSets =
+        newCloneSets.plus(
+            oldCloneSets.map { cloneSet ->
+                cloneSet.map {
+                    if (it.status == CloneStatus.DELETE) {
+                        it
+                    } else {
+                        if (it.mapperCloneInstanceId == -1) {
+                            it.mapperCloneInstanceId = it.id
+                        }
+                        newIdCloneMap[it.mapperCloneInstanceId] ?: error("")
+                    }
+                }
+            })
+            .distinctBy { it.toSet() }
+
     private fun List<CloneInstance>.isNewlyAddedCloneSets(): Boolean =
-        this.count { it.status == CloneStatus.ADD } >= this.size
+        this.count { it.status == CloneStatus.ADD } == this.size
 
     private fun List<CloneInstance>.isNewCloneAddedCloneSets(): Boolean =
         this.any { it.status == CloneStatus.ADD } &&
@@ -64,34 +88,4 @@ data class TrackingResult(
             newlyCreatedCloneSets.isEmpty() &&
             newCloneAddedCloneSets.isEmpty() &&
             unmergedCloneSets.isEmpty()
-
-    fun isSingle(): Boolean =
-        inconsistentlyChangedCloneSets.size +
-            newlyCreatedCloneSets.size +
-            newCloneAddedCloneSets.size +
-            unmergedCloneSets.size == 1
-
-    fun createSummary(): String {
-        val builder = StringBuilder("[Summary]\t")
-
-        if (isAllEmpty()) {
-            return builder.appendln("No inconsistently changed, newly created, new clone added, or unmerged clone set is detected.")
-                .append("Good job!").toString()
-        }
-
-        if (inconsistentlyChangedCloneSets.isNotEmpty()) {
-            builder.appendln("Inconsistently changed clone sets: ${inconsistentlyChangedCloneSets.size}")
-        }
-        if (newlyCreatedCloneSets.isNotEmpty()) {
-            builder.appendln("Newly created clone sets: ${newlyCreatedCloneSets.size}")
-        }
-        if (newCloneAddedCloneSets.isNotEmpty()) {
-            builder.appendln("New clone added clone sets: ${newCloneAddedCloneSets.size}")
-        }
-        if (unmergedCloneSets.isNotEmpty()) {
-            builder.appendln("Unmerged clone sets: ${unmergedCloneSets.size}")
-        }
-
-        return builder.append("Why don't you modify?").toString()
-    }
 }

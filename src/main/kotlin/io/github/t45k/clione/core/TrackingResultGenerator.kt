@@ -88,4 +88,37 @@ data class TrackingResult(
             newlyCreatedCloneSets.isEmpty() &&
             newCloneAddedCloneSets.isEmpty() &&
             unmergedCloneSets.isEmpty()
+
+    fun summarize(): String =
+        StringBuilder()
+            .appendln("Inconsistently Changed Clone Sets: ${inconsistentlyChangedCloneSets.size}")
+            .append(
+                inconsistentlyChangedCloneSets.mapIndexed { index, cloneSet ->
+                    "clone set $index\n" +
+                        cloneSet.joinToString("\n") { "${it.filePath} ${it.startLine}-${it.endLine} ${it.status}" }
+                }
+            )
+            .appendln()
+            .appendln("Newly Created Clone Sets: ${newlyCreatedCloneSets.size}")
+            .append(
+                newlyCreatedCloneSets.mapIndexed { index, cloneSet ->
+                    "clone set $index\n" +
+                        cloneSet.joinToString("\n") { "${it.filePath} ${it.startLine}-${it.endLine} ${it.status}" }
+                }
+            )
+            .appendln("New Clone Added Clone Sets: ${newCloneAddedCloneSets.size}")
+            .append(
+                newCloneAddedCloneSets.mapIndexed { index, cloneSet ->
+                    "clone set $index\n" +
+                        cloneSet.joinToString("\n") { "${it.filePath} ${it.startLine}-${it.endLine} ${it.status}" }
+                }
+            )
+            .appendln("Unmerged Clone Sets: ${unmergedCloneSets.size}")
+            .append(
+                unmergedCloneSets.mapIndexed { index, cloneSet ->
+                    "clone set $index\n" +
+                        cloneSet.joinToString("\n") { "${it.filePath} ${it.startLine}-${it.endLine} ${it.status}" }
+                }
+            )
+            .toString()
 }

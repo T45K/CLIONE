@@ -174,11 +174,11 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
             .withStatus(GHCheckRun.Status.IN_PROGRESS)
             .create()
 
-    fun sendSuccessStatus() =
+    fun sendSuccessStatus(successMessage: String) =
         pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
             .withStatus(GHCheckRun.Status.COMPLETED)
             .withConclusion(GHCheckRun.Conclusion.SUCCESS)
-            .add(GHCheckRunBuilder.Output("Success", "Notification is completed."))
+            .add(GHCheckRunBuilder.Output("Success", successMessage))
             .add(GHCheckRunBuilder.Action("rerun", "rerun CLIONE", "rerun"))
             .create()
 

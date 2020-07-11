@@ -6,9 +6,7 @@ import io.github.t45k.clione.core.CloneTracker
 import io.github.t45k.clione.core.RunningConfig
 import io.github.t45k.clione.core.Style
 import io.github.t45k.clione.core.TrackingResult
-import io.github.t45k.clione.core.TrackingResultGenerator
 import io.github.t45k.clione.core.generateConfig
-import io.github.t45k.clione.entity.InstancedCloneSets
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.github.GitHubAuthenticator
 import io.github.t45k.clione.util.DigestUtil
@@ -86,7 +84,7 @@ class ClioneApiController {
                 val cloneTracker = CloneTracker(git, pullRequest, config)
                 val trackingResult: TrackingResult = cloneTracker.track()
                 pullRequest.comment(trackingResult)
-                pullRequest.sendSuccessStatus()
+                pullRequest.sendSuccessStatus(trackingResult.summarize())
             }
         } catch (e: Exception) {
             val errorMessage: String = e.toString() + "\n\t" + e.stackTrace.joinToString("\n\t")

@@ -34,12 +34,14 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractClo
     }
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    private val granularity: String = if (config.granularity == Granularity.METHOD) "functions" else "blocks"
     private val cloneDetectionResultPath: Path = sourceCodePath.parent
-        .resolve("${sourceCodePath.fileName}_blocks-blind-clones")
-        .resolve("${sourceCodePath.fileName}_blocks-blind-clones-0.${10 - config.similarity}0.xml")
+        .resolve("${sourceCodePath.fileName}_$granularity-blind-clones")
+        .resolve("${sourceCodePath.fileName}_$granularity-blind-clones-0.${10 - config.similarity}0.xml")
     private val cloneCandidateDataPath: Path = sourceCodePath.parent
-        .resolve("${sourceCodePath.fileName}_blocks.xml")
-    private val nicadConfigPath: Path = nicadDir.resolve("config/${sourceCodePath.toString().substringAfter("storage/").replace('/', '_')}_clione.cfg")
+        .resolve("${sourceCodePath.fileName}_$granularity.xml")
+    private val nicadConfigPath: Path = nicadDir
+        .resolve("config/${sourceCodePath.toString().substringAfter("storage/").replace('/', '_')}_clione.cfg")
 
     /**
      * Execute NiCad clone detector.
@@ -61,10 +63,10 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractClo
     }
 
     private fun detectClones() {
-        val granularity: String = if (config.granularity == Granularity.METHOD) "functions" else "blocks"
         val lang: String = when (config.lang) {
             Language.JAVA -> "java"
             Language.PYTHON -> "py"
+            Language.CPP -> "cpp"
             else -> throw InvalidConfigSpecifiedException("NiCad does not compatible with ${config.lang}")
         }
 

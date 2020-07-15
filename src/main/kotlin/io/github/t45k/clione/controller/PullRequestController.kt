@@ -2,12 +2,14 @@
 
 package io.github.t45k.clione.controller
 
+import io.github.t45k.clione.core.TrackingResult
 import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneStatus
 import org.kohsuke.github.GHCheckRun
 import org.kohsuke.github.GHCheckRunBuilder
 import org.kohsuke.github.GHPullRequest
 import org.kohsuke.github.GHPullRequestFileDetail
+import org.kohsuke.github.GHPullRequestReviewEvent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import kotlin.math.max
@@ -28,54 +30,116 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
      * Comment to the Pull Request to notify inconsistent changes of clone sets.
      * Notice:
      */
-    fun comment(inconsistentChangedCloneSets: List<List<CloneInstance>>) {
+    fun comment(trackingResult: TrackingResult) {
         logger.info("[START]\tComment about $fullName/$number")
 
-        if (inconsistentChangedCloneSets.isEmpty()) {
-            pullRequest.comment("Neither inconsistent changed nor new clone sets were detected.\nGood job! ")
+        if (trackingResult.isAllEmpty()) {
+            pullRequest.comment("No problem. Good job! ")
         }
 
-        for (inconsistentChangedClones in inconsistentChangedCloneSets) {
-            val inconsistentChangedClone = inconsistentChangedClones.find { it.status == CloneStatus.MODIFY }
-                ?: continue
+        for (inconsistentlyChangedClones in trackingResult.inconsistentlyChangedCloneSets) {
+            createCommentAboutInconsistentlyChangedClones(inconsistentlyChangedClones)
+        }
 
-            val stableClones: List<CloneInstance> = inconsistentChangedClones.filter { it.status == CloneStatus.STABLE }
+        for (newCloneAddedCloneSet in trackingResult.newCloneAddedCloneSets) {
+            createCommentAboutNewCloneAddedCloneSet(newCloneAddedCloneSet)
+        }
 
-            val form = if (stableClones.size == 1) {
-                "fragment is"
-            } else {
-                "fragments are"
-            }
+        for (newlyCreatedCloneSet in trackingResult.newlyCreatedCloneSets) {
+            createCommentAboutNewlyCreatedCloneSet(newlyCreatedCloneSet)
+        }
 
-            val src: Regex = "storage/[^/]+/[^/]+/".toRegex()
-            val fileName = src.split(inconsistentChangedClone.filePath.toString())[1]
-            val detail: GHPullRequestFileDetail = (changedFiles[fileName] ?: error(""))[0]
+        for (unmergedCloneSet in trackingResult.unmergedCloneSets) {
+            // TODO impl
+        }
 
-            val multiLine = "\\+([0-9]+,[0-9]+)\\s".toRegex().findAll(detail.patch)
-                .map { it.value }
-                .map { it.substring(1, it.length - 1) }
-                .map { it.split(",") }
-                .map { it[0].toInt() to (it[0].toInt() + it[1].toInt() - 1) }
-                .filterNot { it.second < inconsistentChangedClone.startLine || inconsistentChangedClone.endLine < it.first }
-                .map { max(it.first, inconsistentChangedClone.startLine) to min(it.second, inconsistentChangedClone.endLine) }
-                .toList()
+        logger.info("[END]\tComment about $fullName/${pullRequest.number}")
+    }
 
-            val clonePlaces: String = stableClones.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
+    private fun createCommentAboutInconsistentlyChangedClones(cloneSet: List<CloneInstance>) {
+        val changedClone = cloneSet.find { it.status == CloneStatus.MODIFY }
+            ?: return
 
-            val body = """In this Pull Request, this code fragment in ${getFileUrlBase()}/$fileName#L${inconsistentChangedClone.startLine}-L${inconsistentChangedClone.endLine} is modified,
+        val otherClones: List<CloneInstance> = cloneSet.filter { it.status != CloneStatus.MODIFY }
+
+        val form = if (otherClones.size == 1) {
+            "fragment is"
+        } else {
+            "fragments are"
+        }
+
+        val src: Regex = "storage/[^/]+/[^/]+/".toRegex()
+        val fileName = src.split(changedClone.filePath.toString())[1]
+        val detail: GHPullRequestFileDetail = (changedFiles[fileName] ?: error(""))[0]
+
+        val multiLine = calculateMultiLines(changedClone, detail)
+
+        val clonePlaces: String = otherClones.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
+
+        val body = """In this Pull Request, this code fragment in ${getFileUrlBase()}/$fileName#L${changedClone.startLine}-L${changedClone.endLine} is modified,
                 |but the following $form unmodified.
                 |$clonePlaces
                 |
                 |Why don't you modify consistently?""".trimMargin()
 
-            logger.info("Comment is\n$body")
+        logger.info("Comment is\n$body")
 
-            pullRequest.createMultiLineReviewComment(body, pullRequest.head.sha,
-                fileName, multiLine[0].first, multiLine[0].second)
-            println()
-        }
-        logger.info("[END]\tComment about $fullName/${pullRequest.number}")
+        pullRequest.createMultiLineReviewComment(body, pullRequest.head.sha,
+            fileName, "RIGHT", "RIGHT", multiLine[0].first, multiLine[0].second)
     }
+
+    private fun createCommentAboutNewlyCreatedCloneSet(cloneSet: List<CloneInstance>) {
+        val src: Regex = "storage/[^/]+/[^/]+/".toRegex()
+        val clonePlaces: String = cloneSet.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
+
+        val body = """In this Pull Request, these clone sets are created.
+                |
+                |$clonePlaces
+                |
+                |Why don't you merge it?""".trimMargin()
+
+        logger.info("Comment is\n$body")
+
+        pullRequest.createReview()
+            .body(body)
+            .event(GHPullRequestReviewEvent.COMMENT)
+            .commitId(pullRequest.head.sha)
+    }
+
+    private fun createCommentAboutNewCloneAddedCloneSet(cloneSet: List<CloneInstance>) {
+        val addedClone = cloneSet.find { it.status == CloneStatus.ADD }
+            ?: return
+
+        val otherClones: List<CloneInstance> = cloneSet.filter { it != addedClone }
+
+        val src: Regex = "storage/[^/]+/[^/]+/".toRegex()
+        val fileName = src.split(addedClone.filePath.toString())[1]
+        val detail: GHPullRequestFileDetail = (changedFiles[fileName] ?: error(""))[0]
+
+        val multiLine = calculateMultiLines(addedClone, detail)
+        val clonePlaces: String = otherClones.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
+
+        val body = """In this Pull Request, this code fragment in In this Pull Request, above code fragment is added to below clone set, 
+                |
+                |$clonePlaces
+                |
+                |Why don't you merge it?""".trimMargin()
+
+        logger.info("Comment is\n$body")
+
+        pullRequest.createMultiLineReviewComment(body, pullRequest.head.sha,
+            fileName, "RIGHT", "RIGHT", multiLine[0].first, multiLine[0].second)
+    }
+
+    private fun calculateMultiLines(clone: CloneInstance, detail: GHPullRequestFileDetail): List<Pair<Int, Int>> =
+        "\\+([0-9]+,[0-9]+)\\s".toRegex().findAll(detail.patch)
+            .map { it.value }
+            .map { it.substring(1, it.length - 1) }
+            .map { it.split(",") }
+            .map { it[0].toInt() to (it[0].toInt() + it[1].toInt() - 1) }
+            .filterNot { it.second < clone.startLine || clone.endLine < it.first }
+            .map { max(it.first, clone.startLine) to min(it.second, clone.endLine) }
+            .toList()
 
     fun errorComment() {
         pullRequest.comment("Oops! Something is matter.")
@@ -90,7 +154,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
      * Return GitHub Url of the pull request file base
      * example: https://github.com/T45k/Clione/blob/master/
      */
-    fun getFileUrlBase(): String =
+    private fun getFileUrlBase(): String =
         "https://github.com/${pullRequest.head.repository.fullName}/blob/${pullRequest.head.sha}"
 
     /**
@@ -110,11 +174,11 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
             .withStatus(GHCheckRun.Status.IN_PROGRESS)
             .create()
 
-    fun sendSuccessStatus() =
+    fun sendSuccessStatus(successMessage: String) =
         pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
             .withStatus(GHCheckRun.Status.COMPLETED)
             .withConclusion(GHCheckRun.Conclusion.SUCCESS)
-            .add(GHCheckRunBuilder.Output("Success", "Notification is completed."))
+            .add(GHCheckRunBuilder.Output("Success", successMessage))
             .add(GHCheckRunBuilder.Action("rerun", "rerun CLIONE", "rerun"))
             .create()
 

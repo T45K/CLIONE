@@ -26,7 +26,7 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
 
     private val sourceCodePath: Path = git.getProjectPath().resolve(config.src).toRealPath()
 
-    fun track(): Pair<List<List<CloneInstance>>, List<List<CloneInstance>>> {
+    fun track(): TrackingResult {
         logger.info("[START]\tClone Tracking on ${pullRequest.fullName}/${pullRequest.number}")
 
         val (oldCommitHash: String, newCommitHash: String) = pullRequest.getComparisonCommits()
@@ -50,11 +50,13 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
 
         logger.info("[END]\tclone tracking on ${pullRequest.number}")
 
-        return filterInconsistentChange(oldCloneSets, oldIdCloneMap) to filterInconsistentChange(newCloneSets, newIdCloneMap)
+        val oldMaintenanceTargetClones = filterMaintenanceTargetClones(oldCloneSets, oldIdCloneMap)
+        val newMaintenanceTargetClones = filterMaintenanceTargetClones(newCloneSets, newIdCloneMap)
+        return TrackingResultGenerator(oldMaintenanceTargetClones, newMaintenanceTargetClones, newIdCloneMap).generate()
     }
 
     @VisibleForTesting
-    fun filterInconsistentChange(cloneSets: CloneSets, idCloneMap: IdCloneMap): List<List<CloneInstance>> =
+    fun filterMaintenanceTargetClones(cloneSets: CloneSets, idCloneMap: IdCloneMap): List<List<CloneInstance>> =
         cloneSets.filterNot { cloneSet ->
             cloneSet.all { (idCloneMap[it] ?: error("")).status == CloneStatus.STABLE }
                 || cloneSet.all { (idCloneMap[it] ?: error("")).status == CloneStatus.MODIFY }

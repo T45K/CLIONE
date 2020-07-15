@@ -38,7 +38,7 @@ internal class CloneTrackerTest {
 
         val cloneTracker = CloneTracker(git, pullRequest, config)
         cloneTracker.mapClones(oldFileClonesMap, newFileClonesMap, changedFile, OLD_COMMIT_HASH, NEW_COMMIT_HASH)
-        val oldInconsistentChangedClones = cloneTracker.filterInconsistentChange(oldCloneSets, oldIdCloneMap)
+        val oldInconsistentChangedClones = cloneTracker.filterMaintenanceTargetClones(oldCloneSets, oldIdCloneMap)
 
         assertEquals(1, oldInconsistentChangedClones.size)
 

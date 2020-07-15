@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.t45k.clione.core.CloneTracker
 import io.github.t45k.clione.core.RunningConfig
+import io.github.t45k.clione.core.Style
+import io.github.t45k.clione.core.TrackingResult
 import io.github.t45k.clione.core.generateConfig
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.github.GitHubAuthenticator
@@ -73,11 +75,16 @@ class ClioneApiController {
                     return
                 }
 
+                if (config.style == Style.NONE) {
+                    logger.info("$repositoryFullName specifies none style")
+                    return
+                }
+
                 pullRequest.sendInProgressStatus()
                 val cloneTracker = CloneTracker(git, pullRequest, config)
-                val (_, newInconsistentChangedCloneSets) = cloneTracker.track()
-                pullRequest.comment(newInconsistentChangedCloneSets)
-                pullRequest.sendSuccessStatus()
+                val trackingResult: TrackingResult = cloneTracker.track()
+                pullRequest.comment(trackingResult)
+                pullRequest.sendSuccessStatus(trackingResult.summarize())
             }
         } catch (e: Exception) {
             val errorMessage: String = e.toString() + "\n\t" + e.stackTrace.joinToString("\n\t")

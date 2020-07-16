@@ -92,33 +92,22 @@ data class TrackingResult(
     fun summarize(): String =
         StringBuilder()
             .appendln("Inconsistently Changed Clone Sets: ${inconsistentlyChangedCloneSets.size}")
-            .append(
-                inconsistentlyChangedCloneSets.mapIndexed { index, cloneSet ->
-                    "clone set $index\n" +
-                        cloneSet.joinToString("\n") { "${it.filePath} ${it.startLine}-${it.endLine} ${it.status}" }
-                }
-            )
+            .appendln(summarizeEachCloneSets(inconsistentlyChangedCloneSets))
             .appendln()
             .appendln("Newly Created Clone Sets: ${newlyCreatedCloneSets.size}")
-            .append(
-                newlyCreatedCloneSets.mapIndexed { index, cloneSet ->
-                    "clone set $index\n" +
-                        cloneSet.joinToString("\n") { "${it.filePath} ${it.startLine}-${it.endLine} ${it.status}" }
-                }
-            )
+            .appendln(summarizeEachCloneSets(newlyCreatedCloneSets))
+            .appendln()
             .appendln("New Clone Added Clone Sets: ${newCloneAddedCloneSets.size}")
-            .append(
-                newCloneAddedCloneSets.mapIndexed { index, cloneSet ->
-                    "clone set $index\n" +
-                        cloneSet.joinToString("\n") { "${it.filePath} ${it.startLine}-${it.endLine} ${it.status}" }
-                }
-            )
+            .appendln(summarizeEachCloneSets(newCloneAddedCloneSets))
+            .appendln()
             .appendln("Unmerged Clone Sets: ${unmergedCloneSets.size}")
-            .append(
-                unmergedCloneSets.mapIndexed { index, cloneSet ->
-                    "clone set $index\n" +
-                        cloneSet.joinToString("\n") { "${it.filePath} ${it.startLine}-${it.endLine} ${it.status}" }
-                }
-            )
+            .appendln(summarizeEachCloneSets(unmergedCloneSets))
             .toString()
+
+    private fun summarizeEachCloneSets(cloneSets: InstancedCloneSets): String =
+        cloneSets.mapIndexed { index, cloneSet ->
+            "\tclone set $index\n" +
+                cloneSet.joinToString("\n") { "\t\t${it.filePath} ${it.startLine}-${it.endLine} ${it.status}" }
+        }
+            .joinToString("\n\n")
 }

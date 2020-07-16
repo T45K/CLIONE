@@ -66,12 +66,12 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractClo
         val lang: String = when (config.lang) {
             Language.JAVA -> "java"
             Language.PYTHON -> "py"
-            Language.CPP -> "cpp"
+            Language.CPP -> "c"
             else -> throw InvalidConfigSpecifiedException("NiCad does not compatible with ${config.lang}")
         }
 
-        val configName: String = generateCGI()
-        val command: Array<String> = arrayOf("./nicad6", granularity, lang, sourceCodePath.toString(), configName)
+        val configFileName: String = generateConfig()
+        val command: Array<String> = arrayOf("./nicad6", granularity, lang, sourceCodePath.toString(), configFileName)
         val result: CommandLine.CommandLineResult = CommandLine().execute(nicadDir.toFile(), *command)
         if (!result.isSuccess) {
             throw RuntimeException(result.outputLines.joinToString("\n"))
@@ -166,7 +166,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractClo
     /**
      * @return NiCad option name
      */
-    private fun generateCGI(): String {
+    private fun generateConfig(): String {
         val config: String = """
             threshold=0.${10 - config.similarity}
             minsize=5

@@ -22,7 +22,7 @@ class TrackingResultGenerator(
 ) {
     fun generate(): TrackingResult {
         if (oldCloneSets.isEmpty() && newCloneSets.isEmpty()) {
-            return TrackingResult(emptyList(), emptyList(), emptyList(), emptyList())
+            return TrackingResult.EMPTY
         }
 
         val cloneSets: InstancedCloneSets = mapCloneSets()
@@ -50,12 +50,9 @@ class TrackingResultGenerator(
         newCloneSets.plus(
             oldCloneSets.map { cloneSet ->
                 cloneSet.map {
-                    if (it.status == CloneStatus.DELETE) {
+                    if (it.id == -1) {
                         it
                     } else {
-                        if (it.mapperCloneInstanceId == -1) {
-                            it.mapperCloneInstanceId = it.id
-                        }
                         newIdCloneMap[it.mapperCloneInstanceId] ?: error("")
                     }
                 }
@@ -83,11 +80,9 @@ data class TrackingResult(
     val newCloneAddedCloneSets: InstancedCloneSets,
     val unmergedCloneSets: InstancedCloneSets
 ) {
-    fun isAllEmpty(): Boolean =
-        inconsistentlyChangedCloneSets.isEmpty() &&
-            newlyCreatedCloneSets.isEmpty() &&
-            newCloneAddedCloneSets.isEmpty() &&
-            unmergedCloneSets.isEmpty()
+    companion object {
+        val EMPTY: TrackingResult = TrackingResult(emptyList(), emptyList(), emptyList(), emptyList())
+    }
 
     fun summarize(): String =
         StringBuilder()

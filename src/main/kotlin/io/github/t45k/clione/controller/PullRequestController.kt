@@ -33,7 +33,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
     fun comment(trackingResult: TrackingResult) {
         logger.info("[START]\tComment about $fullName/$number")
 
-        if (trackingResult.isAllEmpty()) {
+        if (trackingResult === TrackingResult.EMPTY) {
             pullRequest.comment("No problem. Good job! ")
         }
 

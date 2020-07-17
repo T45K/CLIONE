@@ -22,7 +22,7 @@ class TrackingResultGenerator(
 ) {
     fun generate(): TrackingResult {
         if (oldCloneSets.isEmpty() && newCloneSets.isEmpty()) {
-            return TrackingResult(emptyList(), emptyList(), emptyList(), emptyList())
+            return TrackingResult.EMPTY
         }
 
         val cloneSets: InstancedCloneSets = mapCloneSets()
@@ -83,11 +83,9 @@ data class TrackingResult(
     val newCloneAddedCloneSets: InstancedCloneSets,
     val unmergedCloneSets: InstancedCloneSets
 ) {
-    fun isAllEmpty(): Boolean =
-        inconsistentlyChangedCloneSets.isEmpty() &&
-            newlyCreatedCloneSets.isEmpty() &&
-            newCloneAddedCloneSets.isEmpty() &&
-            unmergedCloneSets.isEmpty()
+    companion object {
+        val EMPTY: TrackingResult = TrackingResult(emptyList(), emptyList(), emptyList(), emptyList())
+    }
 
     fun summarize(): String =
         StringBuilder()

@@ -50,7 +50,7 @@ class TrackingResultGenerator(
         newCloneSets.plus(
             oldCloneSets.map { cloneSet ->
                 cloneSet.map {
-                    if (it.id == -1) {
+                    if (it.mapperCloneInstanceId == -1) {
                         it
                     } else {
                         newIdCloneMap[it.mapperCloneInstanceId] ?: error("")

@@ -6,8 +6,8 @@ import io.github.t45k.clione.controller.cloneDetector.NiCadController
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.util.generatePRMock
 import io.github.t45k.clione.util.toRealPath
-import org.junit.Test
 import java.nio.file.Path
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 internal class CloneTrackerTest {
@@ -38,7 +38,7 @@ internal class CloneTrackerTest {
 
         val cloneTracker = CloneTracker(git, pullRequest, config)
         cloneTracker.mapClones(oldFileClonesMap, newFileClonesMap, changedFile, OLD_COMMIT_HASH, NEW_COMMIT_HASH)
-        val oldInconsistentChangedClones = cloneTracker.filterMaintenanceTargetClones(oldCloneSets, oldIdCloneMap)
+        val oldInconsistentChangedClones = cloneTracker.filterTargetClones(oldCloneSets, oldIdCloneMap)
 
         assertEquals(1, oldInconsistentChangedClones.size)
 

@@ -50,16 +50,17 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
 
         logger.info("[END]\tclone tracking on ${pullRequest.number}")
 
-        val oldMaintenanceTargetClones = filterMaintenanceTargetClones(oldCloneSets, oldIdCloneMap)
-        val newMaintenanceTargetClones = filterMaintenanceTargetClones(newCloneSets, newIdCloneMap)
-        return TrackingResultGenerator(oldMaintenanceTargetClones, newMaintenanceTargetClones, newIdCloneMap).generate()
+        val oldTargetClones = filterTargetClones(oldCloneSets, oldIdCloneMap)
+        val newTargetClones = filterTargetClones(newCloneSets, newIdCloneMap)
+        return TrackingResultGenerator(oldTargetClones, newTargetClones, newIdCloneMap).generate()
     }
 
     @VisibleForTesting
-    fun filterMaintenanceTargetClones(cloneSets: CloneSets, idCloneMap: IdCloneMap): List<List<CloneInstance>> =
+    fun filterTargetClones(cloneSets: CloneSets, idCloneMap: IdCloneMap): List<List<CloneInstance>> =
         cloneSets.filterNot { cloneSet ->
             cloneSet.all { (idCloneMap[it] ?: error("")).status == CloneStatus.STABLE }
                 || cloneSet.all { (idCloneMap[it] ?: error("")).status == CloneStatus.MODIFY }
+                || cloneSet.count { (idCloneMap[it] ?: error("")).status == CloneStatus.DELETE } >= cloneSet.size - 1
         }
             .map { it.map { id -> idCloneMap[id] ?: error("") } }
 

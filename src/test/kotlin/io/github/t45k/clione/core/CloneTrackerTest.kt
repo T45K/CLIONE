@@ -6,8 +6,8 @@ import io.github.t45k.clione.controller.cloneDetector.NiCadController
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.util.generatePRMock
 import io.github.t45k.clione.util.toRealPath
-import org.junit.Test
 import java.nio.file.Path
+import kotlin.test.Test
 import kotlin.test.assertEquals
 
 internal class CloneTrackerTest {

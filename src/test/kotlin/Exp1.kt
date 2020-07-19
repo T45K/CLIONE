@@ -13,9 +13,9 @@ class Exp1 {
     @Test
     fun investigateMaintenanceTargetClonesProportion() {
         val repositoryFullName = "dnsjava/dnsjava"
-        var javaFileChangedPRCount = 0
+        var interestingPRCounts = 0
         var targetClonesPRCount = 0
-        val prInfos = mutableListOf<String>()
+        val interestingPRInfos = mutableListOf<String>()
         GitHubBuilder.fromEnvironment()
             //.withPassword("T45K","")
             .build()
@@ -29,14 +29,13 @@ class Exp1 {
                         val (tmp, head) = pullRequest.getComparisonCommits()
                         val base = git.getCommonAncestorCommit(tmp, head)
                         val (oldChangedFiles, newChangedFiles) = git.findChangedFiles(base, head)
-                        val isJavaFileChanged = setOf(*oldChangedFiles.toTypedArray(), *newChangedFiles.toTypedArray())
-                            .any { it.toString().contains("src/main/java") && it.toString().endsWith(".java") }
-                        if (!isJavaFileChanged) {
-                            return@use
-                        }
-
-                        javaFileChangedPRCount++
                         val config = RunningConfig("src/main/java")
+                        setOf(*oldChangedFiles.toTypedArray(), *newChangedFiles.toTypedArray())
+                            .any { it.toString().contains(config.src) && it.toString().endsWith(".java") }
+                            .let { if (!it) return@use }
+
+                        interestingPRCounts++
+                        interestingPRInfos.add("${pullRequest.number} $base $head")
                         val tracker = CloneTracker(git, pullRequest, config)
                         val (oldClones, newClones) = tracker.track()
                         if (oldClones.isEmpty() && newClones.isEmpty()) {
@@ -44,16 +43,14 @@ class Exp1 {
                         }
 
                         targetClonesPRCount++
-                        prInfos.add("${pullRequest.number} $base $head")
-
                     }
                 } catch (e: Exception) {
                     // do nothing
                 }
             }
 
-        prInfos.add("all: $javaFileChangedPRCount")
-        prInfos.add("target: $targetClonesPRCount")
-        Files.writeString(Path.of(repositoryFullName.replace("/", "_")), prInfos.joinToString("\n"))
+        interestingPRInfos.add("all: $interestingPRCounts")
+        interestingPRInfos.add("target: $targetClonesPRCount")
+        Files.writeString(Path.of(repositoryFullName.replace("/", "_")), interestingPRInfos.joinToString("\n"))
     }
 }

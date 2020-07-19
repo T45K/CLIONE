@@ -60,6 +60,7 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
         cloneSets.filterNot { cloneSet ->
             cloneSet.all { (idCloneMap[it] ?: error("")).status == CloneStatus.STABLE }
                 || cloneSet.all { (idCloneMap[it] ?: error("")).status == CloneStatus.MODIFY }
+                || cloneSet.count { (idCloneMap[it] ?: error("")).status == CloneStatus.DELETE } >= cloneSet.size - 1
         }
             .map { it.map { id -> idCloneMap[id] ?: error("") } }
 

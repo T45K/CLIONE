@@ -29,7 +29,11 @@ class Exp1 {
                         val (tmp, head) = pullRequest.getComparisonCommits()
                         val base = git.getCommonAncestorCommit(tmp, head)
                         val (oldChangedFiles, newChangedFiles) = git.findChangedFiles(base, head)
-                        val config = RunningConfig("src/main/java")
+                        val config = if (Files.exists(git.getProjectPath().resolve("src"))) {
+                            RunningConfig("src/main/java")
+                        } else {
+                            RunningConfig("source")
+                        }
                         setOf(*oldChangedFiles.toTypedArray(), *newChangedFiles.toTypedArray())
                             .any { it.toString().contains(config.src) && it.toString().endsWith(".java") }
                             .let { if (!it) return@use }

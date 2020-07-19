@@ -57,7 +57,7 @@ class TrackingResultGenerator(
                     }
                 }
             })
-            .distinctBy { it.toSet() }
+            .distinctBy { list: List<CloneInstance> -> list.map { Triple(it.filePath, it.startLine, it.endLine) }.toSet() }
 
     private fun List<CloneInstance>.isNewlyAddedCloneSets(): Boolean =
         this.count { it.status == CloneStatus.ADD } == this.size

@@ -60,7 +60,7 @@ class TrackingResultGenerator(
             .distinctBy { list: List<CloneInstance> -> list.map { Triple(it.filePath, it.startLine, it.endLine) }.toSet() }
 
     private fun List<CloneInstance>.isNewlyAddedCloneSets(): Boolean =
-        this.count { it.status == CloneStatus.ADD } >= this.size - 1
+        this.count { it.status == CloneStatus.ADD } == this.size
 
     private fun List<CloneInstance>.isNewCloneAddedCloneSets(): Boolean =
         this.any { it.status == CloneStatus.ADD } &&

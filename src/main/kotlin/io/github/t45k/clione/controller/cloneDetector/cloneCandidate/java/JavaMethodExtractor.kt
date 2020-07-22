@@ -7,7 +7,8 @@ class JavaMethodExtractor : JDTCloneCandidateExtractor(
     { MethodExtractVisitor(it) }
 ) {
 
-    private class MethodExtractVisitor(compilationUnit: CompilationUnit) : CloneCandidateExtractVisitor(compilationUnit) {
+    private class MethodExtractVisitor(compilationUnit: CompilationUnit) :
+        CloneCandidateExtractVisitor(compilationUnit) {
 
         override fun visit(node: MethodDeclaration?): Boolean {
             if (!node!!.isMoreThanThreeLines()) {

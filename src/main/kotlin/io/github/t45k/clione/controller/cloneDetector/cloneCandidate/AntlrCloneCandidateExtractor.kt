@@ -17,7 +17,8 @@ abstract class AntlrCloneCandidateExtractor(
     private val parse: (CommonTokenStream) -> Parser,
     private val top: (Parser) -> ParseTree,
     private val instantiateListener: () -> CloneCandidatesExtractListener,
-    private val tokenize: (String) -> List<String>) : CloneCandidateExtractor {
+    private val tokenize: (String) -> List<String>
+) : CloneCandidateExtractor {
 
     /**
      * Extract clone candidates from target source code.
@@ -28,7 +29,11 @@ abstract class AntlrCloneCandidateExtractor(
      *
      * @return clone candidates, which is CloneInstance and raw string
      */
-    override fun extract(code: String, filePath: Path, cloneStatus: CloneStatus): List<Pair<LazyCloneInstance, String>> =
+    override fun extract(
+        code: String,
+        filePath: Path,
+        cloneStatus: CloneStatus
+    ): List<Pair<LazyCloneInstance, String>> =
         code.toCharStream()
             .run { lex(this) }
             .run { CommonTokenStream(this) }
@@ -47,7 +52,13 @@ abstract class AntlrCloneCandidateExtractor(
                 val tokenSequence: List<String> = tokenize(code.substring(startPosition, endPosition + 1))
                 val startLine = block.start.line
                 val endLine = block.stop.line
-                LazyCloneInstance(filePath, startLine, endLine, cloneStatus, tokenSequence) to tokenSequence.joinToString(" ")
+                LazyCloneInstance(
+                    filePath,
+                    startLine,
+                    endLine,
+                    cloneStatus,
+                    tokenSequence
+                ) to tokenSequence.joinToString(" ")
             }
 }
 

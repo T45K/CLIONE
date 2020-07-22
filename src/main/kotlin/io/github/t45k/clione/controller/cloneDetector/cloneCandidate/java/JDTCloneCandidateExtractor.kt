@@ -19,7 +19,11 @@ abstract class JDTCloneCandidateExtractor(
     /**
      * Extract clone candidates by using JDT AST.
      */
-    override fun extract(code: String, filePath: Path, cloneStatus: CloneStatus): List<Pair<LazyCloneInstance, String>> =
+    override fun extract(
+        code: String,
+        filePath: Path,
+        cloneStatus: CloneStatus
+    ): List<Pair<LazyCloneInstance, String>> =
         ASTParser.newParser(AST.JLS14)
             .apply { this.setSource(code.toCharArray()) }
             .run { this.createAST(NullProgressMonitor()) as CompilationUnit }
@@ -28,9 +32,11 @@ abstract class JDTCloneCandidateExtractor(
                     .apply { compilationUnit.accept(this) }
                     .list
                     .map {
-                        LazyCloneInstance(filePath, compilationUnit.getLineNumber(it.startPosition),
+                        LazyCloneInstance(
+                            filePath, compilationUnit.getLineNumber(it.startPosition),
                             compilationUnit.getLineNumber(it.startPosition + it.length), cloneStatus,
-                            JDTTokenizer().tokenize(it.toString())) to it.toString()
+                            JDTTokenizer().tokenize(it.toString())
+                        ) to it.toString()
                     }
             }
 }

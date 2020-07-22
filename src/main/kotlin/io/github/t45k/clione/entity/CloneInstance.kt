@@ -9,4 +9,5 @@ data class CloneInstance(
     val id: Int,
     var status: CloneStatus,
     val tokenSequence: List<String> = emptyList(),
-    var mapperCloneInstanceId: Int = -1)
+    var mapperCloneInstanceId: Int = -1
+)

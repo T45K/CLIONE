@@ -53,11 +53,13 @@ class ClioneApiController {
         val json: JsonNode = ObjectMapper().readTree(rawRequestBody)
         val (pullRequest: PullRequestController, token: String) =
             if (request.getHeader(WEBHOOK_EVENT) == "pull_request" &&
-                json["action"].asText() == "opened") {
+                json["action"].asText() == "opened"
+            ) {
                 GitHubAuthenticator.authenticateFromPullRequest(json)
             } else if (request.getHeader(WEBHOOK_EVENT) == "check_run"
                 && json["action"].asText() == "requested_action"
-                && json["requested_action"]["identifier"].asText() == "rerun") {
+                && json["requested_action"]["identifier"].asText() == "rerun"
+            ) {
                 GitHubAuthenticator.authenticateFromCheckRun(json)
             } else {
                 return

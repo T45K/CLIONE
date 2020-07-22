@@ -21,14 +21,19 @@ internal class CloneTrackerTest {
     @Test
     fun test() {
         val config = RunningConfig("src", Language.JAVA, similarity = 7)
-        val pullRequest: PullRequestController = generatePRMock(REPOSITORY_FULL_NAME, 0, NEW_COMMIT_HASH, OLD_COMMIT_HASH)
+        val pullRequest: PullRequestController =
+            generatePRMock(REPOSITORY_FULL_NAME, 0, NEW_COMMIT_HASH, OLD_COMMIT_HASH)
         val git = GitController.cloneIfNotExists(REPOSITORY_FULL_NAME, "", pullRequest)
         val cloneDetector = NiCadController(git.getProjectPath().resolve(config.src), config)
-        val changedFile = setOf("./storage/T45K/trial_0/src/Sample.java".toRealPath(), git.getProjectPath().resolve("src/Sample.java").toRealPath())
+        val changedFile = setOf(
+            "./storage/T45K/trial_0/src/Sample.java".toRealPath(),
+            git.getProjectPath().resolve("src/Sample.java").toRealPath()
+        )
 
         val newFileCache: MutableMap<Path, List<String>> = mutableMapOf()
         val (_, newIdCloneMap) = cloneDetector.collectResult(changedFile, CloneStatus.ADD, newFileCache)
-        cloneDetector.parseCandidateXML(newFileCache, changedFile).forEach { candidate -> newIdCloneMap.computeIfAbsent(candidate.id) { candidate } }
+        cloneDetector.parseCandidateXML(newFileCache, changedFile)
+            .forEach { candidate -> newIdCloneMap.computeIfAbsent(candidate.id) { candidate } }
         val newFileClonesMap = newIdCloneMap.values.groupBy { it.filePath }
 
         git.checkout(OLD_COMMIT_HASH)

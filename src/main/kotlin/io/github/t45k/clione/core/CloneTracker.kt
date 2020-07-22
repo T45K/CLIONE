@@ -17,8 +17,10 @@ import java.nio.file.Path
 import kotlin.math.max
 import kotlin.math.min
 
-class CloneTracker(private val git: GitController, private val pullRequest: PullRequestController,
-                   private val config: RunningConfig) {
+class CloneTracker(
+    private val git: GitController, private val pullRequest: PullRequestController,
+    private val config: RunningConfig
+) {
 
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -32,17 +34,26 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
         val (oldCommitHash: String, newCommitHash: String) = pullRequest.getComparisonCommits()
         val baseCommitHash: String = git.getCommonAncestorCommit(oldCommitHash, newCommitHash)
         val cloneDetector: CloneDetectorController = create(sourceCodePath, config)
-        val (oldChangedFiles: Set<Path>, newChangedFiles: Set<Path>) = git.findChangedFiles(oldCommitHash, newCommitHash)
+        val (oldChangedFiles: Set<Path>, newChangedFiles: Set<Path>) = git.findChangedFiles(
+            oldCommitHash,
+            newCommitHash
+        )
 
         logger.info("[START]\tNew revision: $newCommitHash")
         git.checkout(newCommitHash)
-        val (newCloneSets: CloneSets, newIdCloneMap: IdCloneMap) = cloneDetector.execute(newChangedFiles, CloneStatus.ADD)
+        val (newCloneSets: CloneSets, newIdCloneMap: IdCloneMap) = cloneDetector.execute(
+            newChangedFiles,
+            CloneStatus.ADD
+        )
         val newPathClonesMap: PathClonesMap = newIdCloneMap.values.groupBy { it.filePath }
         logger.info("[END]\tNew revision: $newCommitHash")
 
         logger.info("[START]\tOld revision: $baseCommitHash")
         git.checkout(baseCommitHash)
-        val (oldCloneSets: CloneSets, oldIdCloneMap: IdCloneMap) = cloneDetector.execute(oldChangedFiles, CloneStatus.DELETE)
+        val (oldCloneSets: CloneSets, oldIdCloneMap: IdCloneMap) = cloneDetector.execute(
+            oldChangedFiles,
+            CloneStatus.DELETE
+        )
         val oldPathClonesMap: PathClonesMap = oldIdCloneMap.values.groupBy { it.filePath }
         logger.info("[END]\tOld revision: $baseCommitHash")
 
@@ -65,8 +76,10 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
             .map { it.map { id -> idCloneMap[id] ?: error("") } }
 
     @VisibleForTesting
-    fun mapClones(oldPathClonesMap: PathClonesMap, newPathClonesMap: PathClonesMap, oldChangedFiles: Set<Path>,
-                  oldCommitHash: String, newCommitHash: String) {
+    fun mapClones(
+        oldPathClonesMap: PathClonesMap, newPathClonesMap: PathClonesMap, oldChangedFiles: Set<Path>,
+        oldCommitHash: String, newCommitHash: String
+    ) {
         for ((oldFilesPath: Path, clones: List<CloneInstance>) in oldPathClonesMap.entries) {
             if (!oldChangedFiles.contains(oldFilesPath)) {
                 continue
@@ -86,20 +99,28 @@ class CloneTracker(private val git: GitController, private val pullRequest: Pull
         }
     }
 
-    private fun mapClonesInSameFile(clones: List<CloneInstance>, mappingCandidates: List<CloneInstance>,
-                                    addedLines: List<Int>, deletedLines: List<Int>) {
+    private fun mapClonesInSameFile(
+        clones: List<CloneInstance>, mappingCandidates: List<CloneInstance>,
+        addedLines: List<Int>, deletedLines: List<Int>
+    ) {
         clones.forEach { oldClone ->
-            val oldStartLine: Int = oldClone.startLine - if (deletedLines.isEmpty()) 0 else deletedLines[oldClone.startLine - 1]
-            val oldEndLine: Int = oldClone.endLine - if (deletedLines.isEmpty()) 0 else deletedLines[oldClone.endLine - 1]
+            val oldStartLine: Int =
+                oldClone.startLine - if (deletedLines.isEmpty()) 0 else deletedLines[oldClone.startLine - 1]
+            val oldEndLine: Int =
+                oldClone.endLine - if (deletedLines.isEmpty()) 0 else deletedLines[oldClone.endLine - 1]
 
             mappingCandidates.asSequence()
                 .filter { candidate: CloneInstance ->
-                    val newStartLine: Int = candidate.startLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.startLine - 1]
-                    val newEndLine: Int = candidate.endLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.endLine - 1]
+                    val newStartLine: Int =
+                        candidate.startLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.startLine - 1]
+                    val newEndLine: Int =
+                        candidate.endLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.endLine - 1]
                     calcLineOverlapping(newStartLine, newEndLine, oldStartLine, oldEndLine) >= 0.3
                 }.maxBy { candidate: CloneInstance ->
-                    val newStartLine: Int = candidate.startLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.startLine - 1]
-                    val newEndLine: Int = candidate.endLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.endLine - 1]
+                    val newStartLine: Int =
+                        candidate.startLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.startLine - 1]
+                    val newEndLine: Int =
+                        candidate.endLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.endLine - 1]
                     calcLineOverlapping(newStartLine, newEndLine, oldStartLine, oldEndLine)
                 }
                 ?.let {

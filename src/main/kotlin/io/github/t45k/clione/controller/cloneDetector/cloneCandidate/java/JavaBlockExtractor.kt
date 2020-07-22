@@ -7,7 +7,8 @@ class JavaBlockExtractor : JDTCloneCandidateExtractor(
     { BlockExtractVisitor(it) }
 ) {
 
-    private class BlockExtractVisitor(compilationUnit: CompilationUnit) : CloneCandidateExtractVisitor(compilationUnit) {
+    private class BlockExtractVisitor(compilationUnit: CompilationUnit) :
+        CloneCandidateExtractVisitor(compilationUnit) {
 
         override fun visit(node: Block?): Boolean {
             if (node!!.statements().isEmpty() || !node.isMoreThanThreeLines()) {

@@ -1,14 +1,9 @@
-import io.github.t45k.clione.controller.GitController
-import io.github.t45k.clione.core.CloneDetector
-import io.github.t45k.clione.core.CloneTracker
-import io.github.t45k.clione.core.Granularity
-import io.github.t45k.clione.core.RunningConfig
-import io.github.t45k.clione.util.generatePRMock
+import com.github.kusumotolab.sdl4j.util.CommandLine
 import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.test.Test
 
-class ClioneJrubyMethod {
+class CNJrubyMethod {
 
     @Test
     fun test() {
@@ -23,6 +18,8 @@ class ClioneJrubyMethod {
         } else {
             resDir.resolve("jruby_method")
         }
+
+        val cnPath = Path.of("cn")
 
         """6331 8f5e1d35d31cf86f1a656ee74b17b5950f2d8625 6f4e4361c263abb2f3def9459e11aa13b56f11c0
 6328 71347a672fe21b20a6b3c174480f51fbcc86d385 a1dd8d3bbf79e61c672d28c7dc2fb86bc0a12742
@@ -318,26 +315,32 @@ class ClioneJrubyMethod {
 5025 ecf16d2d5d197be63545602898701cf20ece4d52 e29816fcd0ab515a83855205cac784a8579def81""".trimMargin().split("\n")
             .forEach { line ->
                 val (num, base, head) = line.split(" ")
-                val repositoryFullName = "jruby/jruby"
-                val pullRequest = generatePRMock(repositoryFullName, num.toInt(), head, base)
-                GitController.cloneIfNotExists(repositoryFullName, "", pullRequest).use { git ->
-                    val config = RunningConfig(
-                        "core/src/main/java",
-                        cloneDetector = CloneDetector.SOURCERERCC,
-                        granularity = Granularity.METHOD
-                    )
-                    val cloneTracker = CloneTracker(git, pullRequest, config)
-                    val (old, new) = cloneTracker.track()
-                    val result = "old\n\n" +
-                        old.joinToString("\n\n") { cloneSet ->
-                            cloneSet.joinToString("\n")
-                        } +
-                        "\n\nnew\n\n" +
-                        new.joinToString("\n\n") { cloneSet ->
-                            cloneSet.joinToString("\n")
-                        }
-                    Files.writeString(dir.resolve(Path.of(num)), result)
+                val name = "jruby"
+
+                if (Files.exists(cnPath.resolve(name))) {
+                    cnPath.resolve(name)
                 }
+
+                val contents = """PROJECT_NAME:$name
+                    |TOOL:SourcererCC
+                    |GRANULARITY:methods
+                    |LANGUAGE:java
+                    |CHECKOUT:MANUAL
+                    |NEW_VERSION:new/$name/core/src/main/java
+                    |OLD_VERSION:old/$name/core/src/main/java
+                    |TOKEN:20
+                    |OVERLAPPING:false
+                    |WEB:false
+                    |CSV:true
+                    |CSV_DIR:${dir.resolve(num)}
+                    |MAIL:false
+                """.trimMargin()
+                Files.writeString(cnPath.resolve(name), contents)
+                CommandLine().execute(cnPath.resolve("new/$name").toFile(), "git", "checkout", "master")
+                CommandLine().execute(cnPath.resolve("new/$name").toFile(), "git", "checkout", head)
+                CommandLine().execute(cnPath.resolve("old/$name").toFile(), "git", "checkout", "master")
+                CommandLine().execute(cnPath.resolve("old/$name").toFile(), "git", "checkout", base)
+                CommandLine().execute(cnPath.toFile(), "java", "-jar", "analyze.jar", name)
             }
     }
 }

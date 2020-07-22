@@ -19,7 +19,8 @@ import java.nio.file.Path
 import kotlin.math.absoluteValue
 import kotlin.streams.asSequence
 
-class SourcererCCController(sourceCodePath: Path, config: RunningConfig) : AbstractCloneDetectorController(sourceCodePath, config) {
+class SourcererCCController(sourceCodePath: Path, config: RunningConfig) :
+    AbstractCloneDetectorController(sourceCodePath, config) {
 
     companion object {
         private const val SCC_PROPERTY_LOCATION = "./src/main/resources/sourcerer-cc.properties"
@@ -28,8 +29,45 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) : Abstr
         private const val INDEX_FILES_LOCATION = "NODE/index/shards"
         private const val FWD_INDEX_FILES_LOCATION = "NODE/fwdindex/shards"
 
-        private val symbols = arrayOf("`", "~", "!", "@", "#", "$", "%", "^", "&", "*", "(", ")", "-", "+", "=", "{", "[", "}", "]", "|", "\\", ":", ";", "\"", "'", "<", ",", ">", ".", "/", "?", " ", "\n", "\r", "\t")
-        private val generatedDirs = listOf("index", "fwdindex", "NODE", "backup_output", "gtpmindex", "nodes_completed.txt")
+        private val symbols = arrayOf(
+            "`",
+            "~",
+            "!",
+            "@",
+            "#",
+            "$",
+            "%",
+            "^",
+            "&",
+            "*",
+            "(",
+            ")",
+            "-",
+            "+",
+            "=",
+            "{",
+            "[",
+            "}",
+            "]",
+            "|",
+            "\\",
+            ":",
+            ";",
+            "\"",
+            "'",
+            "<",
+            ",",
+            ">",
+            ".",
+            "/",
+            "?",
+            " ",
+            "\n",
+            "\r",
+            "\t"
+        )
+        private val generatedDirs =
+            listOf("index", "fwdindex", "NODE", "backup_output", "gtpmindex", "nodes_completed.txt")
 
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     }
@@ -50,12 +88,22 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) : Abstr
         logger.info("[START]\tClone detection")
         cleanup()
 
-        val (idCloneMap: IdCloneMap, bagOfTokens: List<BagOfToken>) = collectCloneCandidates(changedFiles, initialCloneStatus)
+        val (idCloneMap: IdCloneMap, bagOfTokens: List<BagOfToken>) = collectCloneCandidates(
+            changedFiles,
+            initialCloneStatus
+        )
 
         Files.createDirectory(sourceCodePath.resolve("NODE")).let { Files.createDirectory(it.resolve("query")) }
         Files.writeString(sourceCodePath.resolve(QUERY_FILE_LOCATION), generateSCCFormat(bagOfTokens))
         detectClones()
-        val sccResult: List<String> = Files.readAllLines(Path.of(sourceCodePath.toString(), "NODE", "output${config.similarity}.0", SCC_RESULT_FILE_NAME))
+        val sccResult: List<String> = Files.readAllLines(
+            Path.of(
+                sourceCodePath.toString(),
+                "NODE",
+                "output${config.similarity}.0",
+                SCC_RESULT_FILE_NAME
+            )
+        )
 
         cleanup()
         logger.info("[END]\tClone detection")

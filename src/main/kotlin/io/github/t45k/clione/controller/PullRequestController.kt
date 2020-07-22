@@ -21,7 +21,8 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
         private const val APP_NAME = "CLIONE"
     }
 
-    private val changedFiles: Map<String, List<GHPullRequestFileDetail>> = pullRequest.listFiles().toList().groupBy { it.filename }
+    private val changedFiles: Map<String, List<GHPullRequestFileDetail>> =
+        pullRequest.listFiles().toList().groupBy { it.filename }
     val headCommitHash: String = pullRequest.head.sha
     val number: Int = pullRequest.number
     val fullName: String = pullRequest.repository.fullName
@@ -74,9 +75,11 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
 
         val multiLine = calculateMultiLines(changedClone, detail)
 
-        val clonePlaces: String = otherClones.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
+        val clonePlaces: String =
+            otherClones.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
 
-        val body = """In this Pull Request, this code fragment in ${getFileUrlBase()}/$fileName#L${changedClone.startLine}-L${changedClone.endLine} is modified,
+        val body =
+            """In this Pull Request, this code fragment in ${getFileUrlBase()}/$fileName#L${changedClone.startLine}-L${changedClone.endLine} is modified,
                 |but the following $form unmodified.
                 |$clonePlaces
                 |
@@ -84,13 +87,16 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
 
         logger.info("Comment is\n$body")
 
-        pullRequest.createMultiLineReviewComment(body, pullRequest.head.sha,
-            fileName, "RIGHT", "RIGHT", multiLine[0].first, multiLine[0].second)
+        pullRequest.createMultiLineReviewComment(
+            body, pullRequest.head.sha,
+            fileName, "RIGHT", "RIGHT", multiLine[0].first, multiLine[0].second
+        )
     }
 
     private fun createCommentAboutNewlyCreatedCloneSet(cloneSet: List<CloneInstance>) {
         val src: Regex = "storage/[^/]+/[^/]+/".toRegex()
-        val clonePlaces: String = cloneSet.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
+        val clonePlaces: String =
+            cloneSet.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
 
         val body = """In this Pull Request, these clone sets are created.
                 |
@@ -117,9 +123,11 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
         val detail: GHPullRequestFileDetail = (changedFiles[fileName] ?: error(""))[0]
 
         val multiLine = calculateMultiLines(addedClone, detail)
-        val clonePlaces: String = otherClones.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
+        val clonePlaces: String =
+            otherClones.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
 
-        val body = """In this Pull Request, this code fragment in In this Pull Request, above code fragment is added to below clone set, 
+        val body =
+            """In this Pull Request, this code fragment in In this Pull Request, above code fragment is added to below clone set, 
                 |
                 |$clonePlaces
                 |
@@ -127,8 +135,10 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
 
         logger.info("Comment is\n$body")
 
-        pullRequest.createMultiLineReviewComment(body, pullRequest.head.sha,
-            fileName, "RIGHT", "RIGHT", multiLine[0].first, multiLine[0].second)
+        pullRequest.createMultiLineReviewComment(
+            body, pullRequest.head.sha,
+            fileName, "RIGHT", "RIGHT", multiLine[0].first, multiLine[0].second
+        )
     }
 
     private fun calculateMultiLines(clone: CloneInstance, detail: GHPullRequestFileDetail): List<Pair<Int, Int>> =

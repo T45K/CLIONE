@@ -26,7 +26,8 @@ import java.nio.file.Path
 import java.util.ResourceBundle
 import javax.xml.parsers.DocumentBuilderFactory
 
-class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractCloneDetectorController(sourceCodePath, config) {
+class NiCadController(sourceCodePath: Path, config: RunningConfig) :
+    AbstractCloneDetectorController(sourceCodePath, config) {
     companion object {
         private val nicadDir: Path = ResourceBundle.getBundle("resource")
             ?.getString("NICAD_DIR")?.run { Path.of(this) }
@@ -55,8 +56,15 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractClo
         logger.info("[START]\tClone detection")
         detectClones()
         val fileCache: MutableMap<Path, List<String>> = mutableMapOf()
-        val (cloneSets: CloneSets, idCloneMap: MutableMap<Int, CloneInstance>) = collectResult(changedFiles, initialCloneStatus, fileCache)
-        parseCandidateXML(fileCache, changedFiles).forEach { cloneCandidate -> idCloneMap.computeIfAbsent(cloneCandidate.id) { cloneCandidate } }
+        val (cloneSets: CloneSets, idCloneMap: MutableMap<Int, CloneInstance>) = collectResult(
+            changedFiles,
+            initialCloneStatus,
+            fileCache
+        )
+        parseCandidateXML(
+            fileCache,
+            changedFiles
+        ).forEach { cloneCandidate -> idCloneMap.computeIfAbsent(cloneCandidate.id) { cloneCandidate } }
         cleanup()
         logger.info("[END]\tClone detection")
         return cloneSets to idCloneMap
@@ -98,7 +106,14 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractClo
                             .subList(startLine.toInt(), endLine.toInt() - 1)
                             .joinToString("\n")
                             .let { config.lang.tokenizer.tokenize(it) }
-                        CloneInstance(filePath, startLine.toInt(), endLine.toInt(), index + 1, CloneStatus.ADD, tokenSequence)
+                        CloneInstance(
+                            filePath,
+                            startLine.toInt(),
+                            endLine.toInt(),
+                            index + 1,
+                            CloneStatus.ADD,
+                            tokenSequence
+                        )
                     }
             }
             .filterNot { it.filePath === EMPTY_NAME_PATH }
@@ -145,8 +160,10 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) : AbstractClo
                 nodeList.item(0) as Element to nodeList.item(1) as Element
             }
 
-    private fun convertXmlElementToCloneInstance(element: Element, initialStatus: CloneStatus, changedFiles: Set<Path>,
-                                                 fileCache: MutableMap<Path, List<String>>): CloneInstance {
+    private fun convertXmlElementToCloneInstance(
+        element: Element, initialStatus: CloneStatus, changedFiles: Set<Path>,
+        fileCache: MutableMap<Path, List<String>>
+    ): CloneInstance {
         val filePath: Path = element.getAttribute("file").toRealPath()
         val startLine: Int = element.getAttribute("startline").toInt()
         val endLine: Int = element.getAttribute("endline").toInt()

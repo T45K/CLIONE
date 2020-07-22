@@ -30,7 +30,11 @@ internal class NiCadControllerTest {
 
         val changedFiles: Set<Path> = setOf("./storage/T45K/trial_0/src/Sample.java".toRealPath())
         val fileCache: MutableMap<Path, List<String>> = mutableMapOf()
-        val (cloneSets: List<Set<Int>>, idCloneMap: IdCloneMap) = cloneDetector.collectResult(changedFiles, CloneStatus.ADD, fileCache)
+        val (cloneSets: List<Set<Int>>, idCloneMap: IdCloneMap) = cloneDetector.collectResult(
+            changedFiles,
+            CloneStatus.ADD,
+            fileCache
+        )
         assertEquals(1, cloneSets.size)
         assertEquals(2, cloneSets[0].size)
         assertNotNull(idCloneMap[1])

@@ -43,7 +43,12 @@ class TrackingResultGenerator(
             }
         }
 
-        return TrackingResult(inconsistentlyChangedCloneSets, newlyAddedCloneSets, newCloneAddedCloneSets, unmergedCloneSets)
+        return TrackingResult(
+            inconsistentlyChangedCloneSets,
+            newlyAddedCloneSets,
+            newCloneAddedCloneSets,
+            unmergedCloneSets
+        )
     }
 
     private fun mapCloneSets(): InstancedCloneSets =
@@ -57,7 +62,9 @@ class TrackingResultGenerator(
                     }
                 }
             })
-            .distinctBy { list: List<CloneInstance> -> list.map { Triple(it.filePath, it.startLine, it.endLine) }.toSet() }
+            .distinctBy { list: List<CloneInstance> ->
+                list.map { Triple(it.filePath, it.startLine, it.endLine) }.toSet()
+            }
 
     private fun List<CloneInstance>.isNewlyAddedCloneSets(): Boolean =
         this.count { it.status == CloneStatus.ADD } >= this.size - 1

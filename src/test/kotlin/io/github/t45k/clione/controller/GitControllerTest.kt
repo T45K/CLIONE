@@ -28,7 +28,10 @@ internal class GitControllerTest {
 
     @Test
     fun testFindChangeFiles() {
-        val (oldChangedFiles: Set<Path>, newChangedFiles: Set<Path>) = git.findChangedFiles(OLD_COMMIT_HASH, NEW_COMMIT_HASH)
+        val (oldChangedFiles: Set<Path>, newChangedFiles: Set<Path>) = git.findChangedFiles(
+            OLD_COMMIT_HASH,
+            NEW_COMMIT_HASH
+        )
         assertEquals(3, oldChangedFiles.size)
         assertTrue(oldChangedFiles.contains(git.getProjectPath().resolve("src/Sample.java").toRealPath()))
         assertEquals(3, newChangedFiles.size)

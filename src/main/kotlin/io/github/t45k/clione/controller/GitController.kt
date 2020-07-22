@@ -34,7 +34,11 @@ class GitController(private val git: Git) : AutoCloseable {
     companion object {
         private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
-        fun cloneIfNotExists(repositoryFullName: String, token: String, pullRequest: PullRequestController): GitController =
+        fun cloneIfNotExists(
+            repositoryFullName: String,
+            token: String,
+            pullRequest: PullRequestController
+        ): GitController =
             Observable.just(Path.of("storage/${repositoryFullName}_${pullRequest.number}/.git"))
                 .map {
                     if (Files.exists(it)) {
@@ -167,7 +171,8 @@ class GitController(private val git: Git) : AutoCloseable {
      * Same operation as "git diff revision1...revision2"
      */
     private fun executeDiffCommand(oldCommitHash: String, newCommitHash: String): List<DiffEntry> {
-        val oldTreeParser: AbstractTreeIterator = prepareTreeParser(ObjectId.fromString(getCommonAncestorCommit(oldCommitHash, newCommitHash)))
+        val oldTreeParser: AbstractTreeIterator =
+            prepareTreeParser(ObjectId.fromString(getCommonAncestorCommit(oldCommitHash, newCommitHash)))
         val newTreeParser: AbstractTreeIterator = prepareTreeParser(ObjectId.fromString(newCommitHash))
 
         return DiffFormatter(DisabledOutputStream.INSTANCE)

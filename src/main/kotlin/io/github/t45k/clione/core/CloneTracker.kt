@@ -80,17 +80,19 @@ class CloneTracker(
         oldPathClonesMap: PathClonesMap, newPathClonesMap: PathClonesMap, oldChangedFiles: Set<Path>,
         oldCommitHash: String, newCommitHash: String
     ) {
-        for ((oldFilesPath: Path, clones: List<CloneInstance>) in oldPathClonesMap.entries) {
-            if (!oldChangedFiles.contains(oldFilesPath)) {
+        for ((oldFilePath: Path, clones: List<CloneInstance>) in oldPathClonesMap.entries) {
+            if (!oldChangedFiles.contains(oldFilePath)) {
                 continue
             }
 
             val (type: FileChangeType, addedLines: List<Int>, deletedLines: List<Int>, newFilePath: Path) =
-                git.calcFileDiff(oldFilesPath, oldCommitHash, newCommitHash)
-            val candidates: List<CloneInstance> = newPathClonesMap[newFilePath] ?: emptyList()
+                git.calcFileDiff(oldFilePath, oldCommitHash, newCommitHash)
             if (type == FileChangeType.DELETE) {
                 continue
-            } else if (addedLines.isEmpty()) {
+            }
+
+            val candidates: List<CloneInstance> = newPathClonesMap[newFilePath] ?: emptyList()
+            if (addedLines.isEmpty() && deletedLines.isEmpty()) {
                 clones.forEach { it.status = CloneStatus.STABLE }
                 candidates.forEach { it.status = CloneStatus.STABLE }
             }

@@ -88,8 +88,8 @@ class GitController(private val git: Git) : AutoCloseable {
         executeDiffCommand(oldCommitHash, newCommitHash)
             .fold(mutableSetOf<Path>() to mutableSetOf<Path>(),
                 { (oldChangedFiles, newChangedFiles), diffEntry ->
-                    diffEntry.oldPath?.apply { oldChangedFiles.add(completePath(this)) }
-                    diffEntry.newPath?.apply { newChangedFiles.add(completePath(this)) }
+                    diffEntry.oldPath?.apply { if (this != "/dev/null") oldChangedFiles.add(completePath(this)) }
+                    diffEntry.newPath?.apply { if (this != "/dev/null") newChangedFiles.add(completePath(this)) }
                     oldChangedFiles to newChangedFiles
                 })
             .let { it.first to it.second }

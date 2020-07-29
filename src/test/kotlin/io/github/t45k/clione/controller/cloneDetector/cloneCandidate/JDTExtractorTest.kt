@@ -242,6 +242,6 @@ class Graph {
     fun testMethod() {
         val methods: List<Pair<LazyCloneInstance, String>> =
             JavaMethodExtractor().extract(code, EMPTY_NAME_PATH, STABLE)
-        assertEquals(10, methods.size)
+        assertEquals(9, methods.size)
     }
 }

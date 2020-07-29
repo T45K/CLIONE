@@ -9,10 +9,12 @@ class JavaMethodExtractor : JDTCloneCandidateExtractor(
 
     private class MethodExtractVisitor(compilationUnit: CompilationUnit) : CloneCandidateExtractVisitor(compilationUnit) {
 
-        override fun visit(node: MethodDeclaration?): Boolean {
-            if (!node!!.isMoreThanThreeLines()) {
+        override fun visit(node: MethodDeclaration): Boolean {
+            if (node.isConstructor || !node.body.isMoreThanThreeLines()) {
                 return false
             }
+
+            node.javadoc = null
             list.add(node)
             return super.visit(node)
         }

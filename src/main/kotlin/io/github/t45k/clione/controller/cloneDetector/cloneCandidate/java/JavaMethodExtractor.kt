@@ -11,7 +11,7 @@ class JavaMethodExtractor : JDTCloneCandidateExtractor(
         CloneCandidateExtractVisitor(compilationUnit) {
 
         override fun visit(node: MethodDeclaration): Boolean {
-            if (node.isConstructor || !node.body.isMoreThanThreeLines()) {
+            if (node.isConstructor || node.body?.isMoreThanThreeLines() == false) {
                 return false
             }
 

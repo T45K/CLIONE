@@ -1,7 +1,8 @@
+import com.github.kusumotolab.sdl4j.util.CommandLine
 import io.github.t45k.clione.controller.GitController
-import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.core.CloneTracker
 import io.github.t45k.clione.core.RunningConfig
+import io.github.t45k.clione.util.generatePRMock
 import org.kohsuke.github.GHIssueState
 import org.kohsuke.github.GitHubBuilder
 import java.nio.file.Files
@@ -23,9 +24,10 @@ class Exp1 {
             .getPullRequests(GHIssueState.CLOSED)
             .filter { it.isMerged }
             .forEach { ghPR ->
-                val pullRequest = PullRequestController(ghPR)
+                val pullRequest = generatePRMock(repositoryFullName, 0, ghPR.head.sha, ghPR.base.sha)
                 try {
                     GitController.cloneIfNotExists(repositoryFullName, "", pullRequest).use { git ->
+                        CommandLine().execute(git.getProjectPath().toFile(), "git", "checkout", "master")
                         val (tmp, head) = pullRequest.getComparisonCommits()
                         val base = git.getCommonAncestorCommit(tmp, head)
                         val (oldChangedFiles, newChangedFiles) = git.findChangedFiles(base, head)
@@ -35,7 +37,7 @@ class Exp1 {
                             .let { if (!it) return@use }
 
                         interestingPRCounts++
-                        interestingPRInfos.add("${pullRequest.number} $base $head")
+                        interestingPRInfos.add("${ghPR.number} $base $head")
                         val tracker = CloneTracker(git, pullRequest, config)
                         val (oldClones, newClones) = tracker.track()
                         if (oldClones.isEmpty() && newClones.isEmpty()) {

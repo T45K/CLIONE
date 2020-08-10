@@ -108,10 +108,13 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) :
         cleanup()
         logger.info("[END]\tClone detection")
 
-        return constructCloneSets(sccResult) to idCloneMap
+        return constructCloneSets(sccResult, idCloneMap) to idCloneMap
     }
 
-    private fun collectCloneCandidates(changedFiles: Set<Path>, initialCloneStatus: CloneStatus) =
+    private fun collectCloneCandidates(
+        changedFiles: Set<Path>,
+        initialCloneStatus: CloneStatus
+    ): Pair<IdCloneMap, List<BagOfToken>> =
         Files.walk(sourceCodePath).asSequence()
             .filter { it.toString().endsWith(config.lang.extension) }
             .map { it.toRealPath() }
@@ -121,7 +124,8 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) :
                 cloneCandidateExtractor.extract(Files.readString(it), it, status).asSequence()
             }
             .mapIndexed { index, (candidate, block) -> (index + 1 to candidate.setId(index)) to block.toBagOfToken() }
-            .fold(mutableMapOf<Int, CloneInstance>() to mutableListOf<BagOfToken>()) { acc, (indexedCloneInstance: Pair<Int, CloneInstance>, bagOfToken: BagOfToken) ->
+            .fold(mutableMapOf<Int, CloneInstance>() to mutableListOf()) { acc: Pair<MutableMap<Int, CloneInstance>, MutableList<BagOfToken>>,
+                                                                           (indexedCloneInstance: Pair<Int, CloneInstance>, bagOfToken: BagOfToken) ->
                 acc.first.also { it[indexedCloneInstance.first] = indexedCloneInstance.second } to
                     acc.second.also { it.add(bagOfToken) }
             }
@@ -146,9 +150,10 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) :
      * SCC result file formats: file_id_1,clone_id_1,file_id_2,clone_id_2
      * This means clone_id_1 and clone_id_2 are clone pair.
      */
-    private fun constructCloneSets(sccResult: List<String>): CloneSets =
+    private fun constructCloneSets(sccResult: List<String>, idCloneMap: IdCloneMap): CloneSets =
         sccResult.map { it.split(',') }
             .map { it[1].toInt() to it[3].toInt() }
+            .filterNot { (idCloneMap[it.first] ?: error("")).isOverlapping(idCloneMap[it.second] ?: error("")) }
             .fold(SimpleGraph<Int, DefaultEdge>(DefaultEdge::class.java)) { graph, pair ->
                 graph.addVertex(pair.first)
                 graph.addVertex(pair.second)

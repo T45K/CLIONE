@@ -10,4 +10,9 @@ data class CloneInstance(
     var status: CloneStatus,
     val tokenSequence: List<String> = emptyList(),
     var mapperCloneInstanceId: Int = -1
-)
+) {
+    fun isOverlapping(cloneInstance: CloneInstance): Boolean =
+        this.filePath == cloneInstance.filePath &&
+            (this.startLine <= cloneInstance.startLine && this.endLine >= cloneInstance.endLine ||
+                this.startLine >= cloneInstance.startLine && this.endLine <= cloneInstance.endLine)
+}

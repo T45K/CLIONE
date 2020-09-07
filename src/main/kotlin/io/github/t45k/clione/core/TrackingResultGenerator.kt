@@ -20,7 +20,7 @@ class TrackingResultGenerator(
     private val newCloneSets: InstancedCloneSets,
     private val newIdCloneMap: IdCloneMap
 ) {
-    fun generate(): TrackingResult {
+    fun generateResult(): TrackingResult {
         if (oldCloneSets.isEmpty() && newCloneSets.isEmpty()) {
             return TrackingResult.EMPTY
         }
@@ -50,6 +50,8 @@ class TrackingResultGenerator(
             unmergedCloneSets
         )
     }
+
+    fun getRaw() = oldCloneSets to newCloneSets
 
     private fun mapCloneSets(): InstancedCloneSets =
         newCloneSets.plus(
@@ -93,17 +95,17 @@ data class TrackingResult(
 
     fun summarize(): String =
         StringBuilder()
-            .appendln("Inconsistently Changed Clone Sets: ${inconsistentlyChangedCloneSets.size}")
-            .appendln(summarizeEachCloneSets(inconsistentlyChangedCloneSets))
-            .appendln()
-            .appendln("Newly Created Clone Sets: ${newlyCreatedCloneSets.size}")
-            .appendln(summarizeEachCloneSets(newlyCreatedCloneSets))
-            .appendln()
-            .appendln("New Clone Added Clone Sets: ${newCloneAddedCloneSets.size}")
-            .appendln(summarizeEachCloneSets(newCloneAddedCloneSets))
-            .appendln()
-            .appendln("Unmerged Clone Sets: ${unmergedCloneSets.size}")
-            .appendln(summarizeEachCloneSets(unmergedCloneSets))
+            .appendLine("Inconsistently Changed Clone Sets: ${inconsistentlyChangedCloneSets.size}")
+            .appendLine(summarizeEachCloneSets(inconsistentlyChangedCloneSets))
+            .appendLine()
+            .appendLine("Newly Created Clone Sets: ${newlyCreatedCloneSets.size}")
+            .appendLine(summarizeEachCloneSets(newlyCreatedCloneSets))
+            .appendLine()
+            .appendLine("New Clone Added Clone Sets: ${newCloneAddedCloneSets.size}")
+            .appendLine(summarizeEachCloneSets(newCloneAddedCloneSets))
+            .appendLine()
+            .appendLine("Unmerged Clone Sets: ${unmergedCloneSets.size}")
+            .appendLine(summarizeEachCloneSets(unmergedCloneSets))
             .toString()
 
     private fun summarizeEachCloneSets(cloneSets: InstancedCloneSets): String =

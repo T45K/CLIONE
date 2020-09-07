@@ -86,7 +86,7 @@ class ClioneApiController {
 
                 pullRequest.sendInProgressStatus()
                 val cloneTracker = CloneTracker(git, pullRequest, config)
-                val trackingResult: TrackingResult = cloneTracker.track()
+                val trackingResult: TrackingResult = cloneTracker.track().generateResult()
                 pullRequest.comment(trackingResult)
                 pullRequest.sendSuccessStatus(trackingResult.summarize())
             }

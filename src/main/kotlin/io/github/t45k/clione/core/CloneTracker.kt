@@ -27,7 +27,7 @@ class CloneTracker(
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val sourceCodePath: Path = git.getProjectPath().resolve(config.src).toRealPath()
 
-    fun track(): TrackingResult {
+    fun track(): TrackingResultGenerator {
         logger.info("[START]\tClone Tracking on ${pullRequest.fullName}/${pullRequest.number}")
 
         val (oldCommitHash: String, newCommitHash: String) = pullRequest.getComparisonCommits()
@@ -62,7 +62,7 @@ class CloneTracker(
 
         val oldTargetClones = filterTargetClones(oldCloneSets, oldIdCloneMap)
         val newTargetClones = filterTargetClones(newCloneSets, newIdCloneMap)
-        return TrackingResultGenerator(oldTargetClones, newTargetClones, newIdCloneMap).generate()
+        return TrackingResultGenerator(oldTargetClones, newTargetClones, newIdCloneMap)
     }
 
     @VisibleForTesting

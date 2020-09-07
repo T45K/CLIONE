@@ -3,8 +3,8 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     id("org.springframework.boot") version "2.2.6.RELEASE"
     id("io.spring.dependency-management") version "1.0.9.RELEASE"
-    kotlin("jvm") version "1.3.71"
-    kotlin("plugin.spring") version "1.3.71"
+    kotlin("jvm") version "1.4.0"
+    kotlin("plugin.spring") version "1.4.0"
     application
     id("antlr")
     id("com.github.johnrengelman.shadow") version "6.0.0"
@@ -29,7 +29,6 @@ dependencies {
     implementation("com.auth0:java-jwt:3.10.2")
     implementation("com.google.code.gson:gson:2.8.6")
     implementation(fileTree("./lib/github-api-1.113-SNAPSHOT.jar"))
-    implementation(fileTree("./lib/github-api-1.113-SNAPSHOT-jar-with-dependencies.jar"))
     implementation(fileTree("./lib/indexbased.SearchManager.jar"))
     implementation(fileTree("./lib/kotlin-antlr.jar"))
     implementation(fileTree("./lib/python3-antlr.jar"))
@@ -41,6 +40,16 @@ dependencies {
     implementation("org.jgrapht:jgrapht-core:1.4.0")
     implementation("org.eclipse.jdt:org.eclipse.jdt.core:3.22.0")
     implementation("com.moandjiezana.toml:toml4j:0.7.2")
+
+    // Necessary for github-api
+    implementation("org.apache.commons:commons-lang3:3.9")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.10.2")
+    implementation("commons-io:commons-io:2.4")
+    implementation("com.squareup.okio:okio:2.5.0")
+    implementation("com.squareup.okhttp3:okhttp:4.4.1")
+    implementation("com.squareup.okhttp3:okhttp-urlconnection:3.12.3")
+    implementation("com.squareup.okhttp:okhttp-urlconnection:2.7.5")
+
     testImplementation("org.springframework.boot:spring-boot-starter-test") {
         exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
     }
@@ -64,5 +73,14 @@ tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")
         jvmTarget = "1.8"
+    }
+}
+
+val standalone by tasks.registering(JavaExec::class) {
+    main = "io.github.t45k.clione.StandAloneEntryPointKt"
+    classpath = sourceSets.getByName("main").runtimeClasspath
+
+    if (project.hasProperty("args")) {
+        args = (project.property("args") as String).split(Regex("\\s+"))
     }
 }

@@ -2,7 +2,7 @@ package io.github.t45k.clione.controller.cloneDetector
 
 import com.mondego.indexbased.SearchManager
 import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.CloneCandidateExtractor
-import io.github.t45k.clione.core.RunningConfig
+import io.github.t45k.clione.core.config.RunningConfig
 import io.github.t45k.clione.entity.BagOfToken
 import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneSets

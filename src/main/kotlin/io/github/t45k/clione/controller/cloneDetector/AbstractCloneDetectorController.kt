@@ -1,7 +1,7 @@
 package io.github.t45k.clione.controller.cloneDetector
 
-import io.github.t45k.clione.core.CloneDetector
-import io.github.t45k.clione.core.RunningConfig
+import io.github.t45k.clione.core.config.CloneDetector
+import io.github.t45k.clione.core.config.RunningConfig
 import java.nio.file.Path
 
 abstract class AbstractCloneDetectorController(

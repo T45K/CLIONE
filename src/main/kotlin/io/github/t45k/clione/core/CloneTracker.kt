@@ -5,6 +5,7 @@ import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.controller.cloneDetector.CloneDetectorController
 import io.github.t45k.clione.controller.cloneDetector.create
+import io.github.t45k.clione.core.config.RunningConfig
 import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
@@ -118,7 +119,7 @@ class CloneTracker(
                     val newEndLine: Int =
                         candidate.endLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.endLine - 1]
                     calcLineOverlapping(newStartLine, newEndLine, oldStartLine, oldEndLine) >= 0.3
-                }.maxBy { candidate: CloneInstance ->
+                }.maxByOrNull { candidate: CloneInstance ->
                     val newStartLine: Int =
                         candidate.startLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.startLine - 1]
                     val newEndLine: Int =

@@ -1,4 +1,4 @@
-package io.github.t45k.clione.core
+package io.github.t45k.clione.core.config
 
 import io.github.t45k.clione.core.tokenizer.CppTokenizer
 import io.github.t45k.clione.core.tokenizer.JDTTokenizer

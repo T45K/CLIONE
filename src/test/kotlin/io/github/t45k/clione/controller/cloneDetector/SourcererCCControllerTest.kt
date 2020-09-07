@@ -2,8 +2,8 @@ package io.github.t45k.clione.controller.cloneDetector
 
 import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.controller.PullRequestController
-import io.github.t45k.clione.core.Language
-import io.github.t45k.clione.core.RunningConfig
+import io.github.t45k.clione.core.config.Language
+import io.github.t45k.clione.core.config.RunningConfig
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus.DELETE
 import io.github.t45k.clione.util.generatePRMock

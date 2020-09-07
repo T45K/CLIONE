@@ -1,12 +1,12 @@
-package io.github.t45k.clione.core
+package io.github.t45k.clione.core.config
 
 import com.moandjiezana.toml.Toml
-import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_CLONE_DETECTOR
-import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_GRANULARITY
-import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_LANG
-import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_SIMILARITY
-import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_SRC
-import io.github.t45k.clione.core.RunningConfig.Companion.DEFAULT_STYLE
+import io.github.t45k.clione.core.config.RunningConfig.Companion.DEFAULT_CLONE_DETECTOR
+import io.github.t45k.clione.core.config.RunningConfig.Companion.DEFAULT_GRANULARITY
+import io.github.t45k.clione.core.config.RunningConfig.Companion.DEFAULT_LANG
+import io.github.t45k.clione.core.config.RunningConfig.Companion.DEFAULT_SIMILARITY
+import io.github.t45k.clione.core.config.RunningConfig.Companion.DEFAULT_SRC
+import io.github.t45k.clione.core.config.RunningConfig.Companion.DEFAULT_STYLE
 import io.github.t45k.clione.entity.InvalidConfigSpecifiedException
 
 fun generateConfig(input: String): RunningConfig {

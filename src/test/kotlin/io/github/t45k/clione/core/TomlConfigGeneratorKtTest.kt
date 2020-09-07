@@ -1,11 +1,15 @@
 package io.github.t45k.clione.core
 
+import io.github.t45k.clione.core.config.CloneDetector
+import io.github.t45k.clione.core.config.Granularity
+import io.github.t45k.clione.core.config.Language
+import io.github.t45k.clione.core.config.generateConfig
 import io.github.t45k.clione.entity.InvalidConfigSpecifiedException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-internal class ConfigGeneratorKtTest {
+internal class TomlConfigGeneratorKtTest {
 
     @Test
     fun testGenerateConfig() {

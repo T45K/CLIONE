@@ -3,6 +3,8 @@ package io.github.t45k.clione.core
 import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.controller.cloneDetector.NiCadController
+import io.github.t45k.clione.core.config.Language
+import io.github.t45k.clione.core.config.RunningConfig
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.util.generatePRMock
 import io.github.t45k.clione.util.toRealPath

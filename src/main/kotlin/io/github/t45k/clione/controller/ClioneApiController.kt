@@ -3,10 +3,10 @@ package io.github.t45k.clione.controller
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.t45k.clione.core.CloneTracker
-import io.github.t45k.clione.core.RunningConfig
-import io.github.t45k.clione.core.Style
 import io.github.t45k.clione.core.TrackingResult
-import io.github.t45k.clione.core.generateConfig
+import io.github.t45k.clione.core.config.RunningConfig
+import io.github.t45k.clione.core.config.Style
+import io.github.t45k.clione.core.config.generateConfig
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.github.GitHubAuthenticator
 import io.github.t45k.clione.util.DigestUtil

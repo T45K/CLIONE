@@ -4,9 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.github.t45k.clione.core.CloneTracker
 import io.github.t45k.clione.core.TrackingResult
+import io.github.t45k.clione.core.config.ConfigGeneratorFactory
 import io.github.t45k.clione.core.config.RunningConfig
 import io.github.t45k.clione.core.config.Style
-import io.github.t45k.clione.core.config.generateConfig
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.github.GitHubAuthenticator
 import io.github.t45k.clione.util.DigestUtil
@@ -71,7 +71,9 @@ class ClioneApiController {
         try {
             GitController.cloneIfNotExists(repositoryFullName, token, pullRequest).use { git ->
                 val config: RunningConfig = if (Files.exists(git.getProjectPath().resolve(CONFIGURATION_LOCATION))) {
-                    generateConfig(Files.readString(git.getProjectPath().resolve(CONFIGURATION_LOCATION)))
+                    git.getProjectPath().resolve(CONFIGURATION_LOCATION)
+                        .let(Files::readString)
+                        .let(ConfigGeneratorFactory::fromToml)
                 } else {
                     logger.info("$repositoryFullName doesn't have config.toml")
                     return

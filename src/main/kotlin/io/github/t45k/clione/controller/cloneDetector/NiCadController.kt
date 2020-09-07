@@ -78,7 +78,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) :
             else -> throw InvalidConfigSpecifiedException("NiCad does not compatible with ${config.lang}")
         }
 
-        val configFileName: String = generateConfig()
+        val configFileName: String = generateNiCadConfig()
         val command: Array<String> = arrayOf("./nicad6", granularity, lang, sourceCodePath.toString(), configFileName)
         val result: CommandLine.CommandLineResult = CommandLine().execute(nicadDir.toFile(), *command)
         if (!result.isSuccess) {
@@ -183,7 +183,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) :
     /**
      * @return NiCad option name
      */
-    private fun generateConfig(): String {
+    private fun generateNiCadConfig(): String {
         val config: String = """
             threshold=0.${10 - config.similarity}
             minsize=5

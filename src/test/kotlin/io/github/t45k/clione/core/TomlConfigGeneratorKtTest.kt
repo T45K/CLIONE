@@ -1,9 +1,9 @@
 package io.github.t45k.clione.core
 
 import io.github.t45k.clione.core.config.CloneDetector
+import io.github.t45k.clione.core.config.ConfigGeneratorFactory
 import io.github.t45k.clione.core.config.Granularity
 import io.github.t45k.clione.core.config.Language
-import io.github.t45k.clione.core.config.generateConfig
 import io.github.t45k.clione.entity.InvalidConfigSpecifiedException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -20,7 +20,7 @@ internal class TomlConfigGeneratorKtTest {
             clone_detector = "scc"
         """.trimIndent()
 
-        val (src, lang, cloneDetector, granularity, similarity) = generateConfig(toml)
+        val (src, lang, cloneDetector, granularity, similarity) = ConfigGeneratorFactory.fromToml(toml)
         assertEquals("src/main/java", src)
         assertEquals(Language.JAVA, lang)
         assertEquals(CloneDetector.SOURCERERCC, cloneDetector)
@@ -31,6 +31,6 @@ internal class TomlConfigGeneratorKtTest {
     @Test
     fun testGenerateConfigWithException() {
         val toml = """lang = "perl""""
-        assertFailsWith<InvalidConfigSpecifiedException> { generateConfig(toml) }
+        assertFailsWith<InvalidConfigSpecifiedException> { ConfigGeneratorFactory.fromToml(toml) }
     }
 }

@@ -59,6 +59,32 @@ class GitController(private val git: Git) : AutoCloseable {
                 .doOnSubscribe { logger.info("[START]\tclone $repositoryFullName") }
                 .doOnComplete { logger.info("[END]\tclone $repositoryFullName") }
                 .blockingSingle()
+
+        fun cloneIfNotExists(
+            repositoryFullName: String,
+            userName: String,
+            oAuthToken: String,
+        ): GitController =
+            Observable.just(Path.of("storage/$repositoryFullName/.git"))
+                .map {
+                    if (Files.exists(it)) {
+                        FileRepository(it.toString())
+                            .run { Git(this) }
+                            .apply { this.pull().call() }
+                    } else {
+                        Git.cloneRepository()
+                            .setURI("https://github.com/$repositoryFullName.git")
+                            .setDirectory(it.parent.toFile())
+                            .setCredentialsProvider(UsernamePasswordCredentialsProvider(userName, oAuthToken))
+                            .setCloneAllBranches(true)
+                            .call()
+                    }.run {
+                        GitController(this)
+                    }
+                }
+                .doOnSubscribe { logger.info("[START]\tclone $repositoryFullName") }
+                .doOnComplete { logger.info("[END]\tclone $repositoryFullName") }
+                .blockingSingle()
     }
 
     private val repositoryPath: Path = git.repository.directory.parentFile.absoluteFile.toPath().toRealPath()

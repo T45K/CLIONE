@@ -64,12 +64,14 @@ class GitController(private val git: Git) : AutoCloseable {
             repositoryFullName: String,
             userName: String,
             oAuthToken: String,
+            defaultBranchName: String
         ): GitController =
             Observable.just(Path.of("storage/$repositoryFullName/.git"))
                 .map {
                     if (Files.exists(it)) {
                         FileRepository(it.toString())
                             .run { Git(this) }
+                            .apply { this.checkout().setName(defaultBranchName).call() }
                             .apply { this.pull().call() }
                     } else {
                         Git.cloneRepository()

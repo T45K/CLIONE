@@ -19,14 +19,12 @@ import kotlin.math.max
 import kotlin.math.min
 
 class CloneTracker(
-    private val git: GitController, private val pullRequest: PullRequestController,
-    private val config: RunningConfig
+    private val git: GitController,
+    private val pullRequest: PullRequestController,
+    private val config: RunningConfig,
 ) {
 
-    companion object {
-        private val logger: Logger = LoggerFactory.getLogger(this::class.java)
-    }
-
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val sourceCodePath: Path = git.getProjectPath().resolve(config.src).toRealPath()
 
     fun track(): TrackingResult {

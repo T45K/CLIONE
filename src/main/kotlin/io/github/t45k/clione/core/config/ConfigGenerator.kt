@@ -45,7 +45,7 @@ abstract class ConfigGenerator {
     }
 
     private fun getSimilarity(): Int {
-        val similarity: Int = getSimilarityString()?.toInt() ?: return RunningConfig.DEFAULT_SIMILARITY
+        val similarity: Int = getSimilarityInteger() ?: return RunningConfig.DEFAULT_SIMILARITY
         if (similarity < 0 || similarity > 10) {
             throw InvalidConfigSpecifiedException("Similarity must be an integer value between 0 to 10")
         }
@@ -66,6 +66,6 @@ abstract class ConfigGenerator {
     abstract fun getLangString(): String?
     abstract fun getCloneDetectorString(): String?
     abstract fun getGranularityString(): String?
-    abstract fun getSimilarityString(): String?
+    abstract fun getSimilarityInteger(): Int?
     abstract fun getStyleString(): String?
 }

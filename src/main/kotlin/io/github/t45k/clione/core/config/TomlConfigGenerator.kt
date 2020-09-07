@@ -9,6 +9,6 @@ class TomlConfigGenerator(input: String) : ConfigGenerator() {
     override fun getLangString(): String? = toml.getString("lang")
     override fun getCloneDetectorString(): String? = toml.getString("clone_detector")
     override fun getGranularityString(): String? = toml.getString("granularity")
-    override fun getSimilarityString(): String? = toml.getString("similarity")
+    override fun getSimilarityInteger(): Int? = toml.getLong("similarity")?.toInt()
     override fun getStyleString(): String? = toml.getString("style")
 }

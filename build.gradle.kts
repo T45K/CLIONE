@@ -66,3 +66,12 @@ tasks.withType<KotlinCompile> {
         jvmTarget = "1.8"
     }
 }
+
+val standalone by tasks.registering(JavaExec::class) {
+    main = "io.github.t45k.clione.StandAloneEntryPointKt"
+    classpath = sourceSets.getByName("main").runtimeClasspath
+
+    if (project.hasProperty("args")) {
+        args = (project.property("args") as String).split(Regex("\\s+"))
+    }
+}

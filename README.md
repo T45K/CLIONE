@@ -8,10 +8,10 @@
 [[EN](#What's-CLIONE)] [[JP](#CLIONEとは)]
 
 # What's CLIONE
-CLIONE is a code clone maintenance assist bot.<br>
+CLIONE is a code clone modification support bot.<br>
 CLIONE execution is triggered by Pull Requests, and it notifies inconsistently modified or newly added clone sets between the pull request.
 
-## How to use
+## Use as a GitHub bot
 1. Click [here](https://github.com/apps/clione-bot) to register your GitHub account and repository to which you want to apply CLIONE.
 2. Create `.clione/config.toml` in your project.
 3. Edit `config.toml` by refering [Settings](#Settings)
@@ -29,14 +29,27 @@ Simple example is [here](./.clione/config.toml).
 |granularity|Granularity of clones. Followings are selectable.<br>`method`,`block`|`block`|
 |similarity|Similarity of clones. If you enter an integer d between 0 and 10, the clones are detected with a similarity of 10*d%.|`8`|
 
+## Use as a server
+You can build your own CLIONE server.
+1. Setting your GitHub Apps (see https://developer.github.com/apps/).
+1. Download Txl and NiCad clone detector from [here](https://www.txl.ca/) and install them (if you use them).
+1. `git clone git@github.com:T45K/CLIONE` and fill in `src/main/resources/github.properties`, `src/main/resources/verify.properties` and `src/main/resources/resource.properties`.
+1. `./gradlew run` (default port is `3000`).
+
+## Use as a stand alone tool
+You can also CLIONE as a stand alone tool to detect modification-target code fragments from past pull requests.
+1. Download Txl and NiCad clone detector from [here](https://www.txl.ca/) and install them (if you use them).
+1. `git clone git@github.com:T45K/CLIONE` and fill `src/main/resources/resource.properties` and `src/main/resources/stand_alone.properties`.<br>You specify settings (src, lang, etc.,) in `stand_alone.properties`.
+1. `./gradlre stand_alone -Pargs = "user(or organization)_name/repo_name"`
+
 ___
 
 # CLIONEとは
 
-CLIONEはコードクローン保守支援ボットです．<br>
-プルリクエスト作成をトリガーとして実行され，プルリクエスト内で行われた変更の前後で，一貫修正されていないクローンセットや，新しく追加されたクローンセットを通知します．
+CLIONEはコードクローン修正支援ボットです．<br>
+プルリクエスト作成時に，プルリクエスト内で行われた変更の前後で，一貫修正されていないクローンセットや，新しく追加されたクローンセットを通知します．
 
-## 使い方
+## ボットとして使う
 1. [こちら](https://github.com/apps/clione-bot) からGitHubアカウントと適用したいリポジトリを登録してください．
 2. CLIONEを利用したいプロジェクトに内に`.clione/config.toml`ファイルを作成してください．
 3. [設定](#設定)を参考に`config.toml`を編集してください．
@@ -53,3 +66,17 @@ tomlの例は[こちら](./.clione/config.toml)
 |clone_detector|クローン検出器．以下を選択できます．カッコ内は対応言語です．<br>`NiCad(java, python, cpp)`,`SourcererCC(java, kotlin, python, cpp)`|`NiCad`|
 |granularity|検出するクローンの粒度．以下を選択できます．<br>`method`,`block`|`block`|
 |similarity|検出するクローンの類似度．0~10までの整数値dを入力すると，10*d%の類似度でクローンを検出します．|`8`|
+
+## サーバとして使う
+自身のサーバを立ててCLIONEを使えます
+1. https://developer.github.com/apps/ を参考にして，GitHub Appsを作成してください
+1. NiCadを使いたい場合，[ここ](https://www.txl.ca/)からTxlとNiCadをインストールしてください
+1. このリポジトリをクローンして，`src/main/resources/github.properties`，`src/main/resources/verify.properties`，`src/main/resources/resource.properties`に必要な情報を記載してください
+1. `./gradlew run` （デフォルトポートは3000です）
+
+## 単体ツールとして使う
+CLIONEは単体ツールとしても利用できます．
+過去のプルリクから対象のクローンを検出します．
+1. NiCadを使いたい場合，[ここ](https://www.txl.ca/)からTxlとNiCadをインストールしてください
+1. このリポジトリをクローンして，`src/main/resources/stand_alone.properties`，`src/main/resources/resource.properties`に必要な情報を記載してください．<br>また，`stand_alone.properties`にsrcやlangなどの設定を記載してください
+1. `./gradlew stand_alone -Pargs = "user(or organization)_name/repo_name"`

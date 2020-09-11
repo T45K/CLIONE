@@ -53,7 +53,7 @@ class GitController(private val git: Git) : AutoCloseable {
                             .setCloneAllBranches(true)
                             .call()
                     }.run {
-                        GitController(this).apply { this.checkout(pullRequest.headCommitHash) }
+                        GitController(this)
                     }
                 }
                 .doOnSubscribe { logger.info("[START]\tclone $repositoryFullName") }
@@ -211,12 +211,19 @@ class GitController(private val git: Git) : AutoCloseable {
     }
 
     fun getCommonAncestorCommit(oldCommitHash: String, newCommitHash: String): String =
-        RevWalk(git.repository)
-            .apply { this.revFilter = RevFilter.MERGE_BASE }
-            .apply { this.markStart(this.parseCommit(ObjectId.fromString(oldCommitHash))) }
-            .apply { this.markStart(this.parseCommit(ObjectId.fromString(newCommitHash))) }
-            .next()
-            .name
+        if (oldCommitHash.isEmpty()) {
+            git.repository
+                .parseCommit(ObjectId.fromString(newCommitHash))
+                .parents[0]
+                .name
+        } else {
+            RevWalk(git.repository)
+                .apply { this.revFilter = RevFilter.MERGE_BASE }
+                .apply { this.markStart(this.parseCommit(ObjectId.fromString(oldCommitHash))) }
+                .apply { this.markStart(this.parseCommit(ObjectId.fromString(newCommitHash))) }
+                .next()
+                .name
+        }
 
     private fun prepareTreeParser(objectId: ObjectId): AbstractTreeIterator {
         val walk: RevWalk = RevWalk(git.repository).apply { this.revFilter = RevFilter.MERGE_BASE }

@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package io.github.t45k.clione.controller
 
 import io.github.t45k.clione.core.TrackingResult
@@ -159,7 +157,11 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
      * Return base commit hash and head of the branch of the pull request.
      */
     fun getComparisonCommits(): Pair<String, String> =
-        pullRequest.base.sha to (if (pullRequest.isMerged) pullRequest.mergeCommitSha else pullRequest.base.sha)
+        if (pullRequest.isMerged) {
+            "" to pullRequest.mergeCommitSha
+        } else {
+            pullRequest.base.sha to pullRequest.head.sha
+        }
 
     /**
      * Return GitHub Url of the pull request file base
@@ -180,11 +182,13 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
             pullRequest.head.label
         }
 
+    @Suppress("DEPRECATION")
     fun sendInProgressStatus() =
         pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
             .withStatus(GHCheckRun.Status.IN_PROGRESS)
             .create()
 
+    @Suppress("DEPRECATION")
     fun sendSuccessStatus(successMessage: String) =
         pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
             .withStatus(GHCheckRun.Status.COMPLETED)
@@ -193,6 +197,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
             .add(GHCheckRunBuilder.Action("rerun", "rerun CLIONE", "rerun"))
             .create()
 
+    @Suppress("DEPRECATION")
     fun sendErrorStatus(errorMessage: String) =
         pullRequest.repository.createCheckRun(APP_NAME, headCommitHash)
             .withStatus(GHCheckRun.Status.COMPLETED)

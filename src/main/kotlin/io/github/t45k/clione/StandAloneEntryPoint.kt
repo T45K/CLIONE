@@ -54,7 +54,7 @@ fun main(args: Array<String>) {
             entryPoint.logger.info("enter PR#${pr.number}")
             try {
                 val headCommit: String = pr.mergeCommitSha
-                val baseCommit: String = git.getCommonAncestorCommit(pr.base.sha, headCommit)
+                val baseCommit: String = git.getCommonAncestorCommit("", headCommit)
                 git.findChangedFiles(baseCommit, headCommit)
                     .let { setOf(*it.first.toTypedArray(), *it.second.toTypedArray()) }
                     .any { it.toString().contains(config.src) && it.toString().endsWith(config.lang.extension) }

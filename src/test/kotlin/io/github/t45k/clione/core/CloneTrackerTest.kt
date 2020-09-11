@@ -32,6 +32,7 @@ internal class CloneTrackerTest {
             git.getProjectPath().resolve("src/Sample.java").toRealPath()
         )
 
+        git.checkout(NEW_COMMIT_HASH)
         val newFileCache: MutableMap<Path, List<String>> = mutableMapOf()
         val (_, newIdCloneMap) = cloneDetector.collectResult(changedFile, CloneStatus.ADD, newFileCache)
         cloneDetector.parseCandidateXML(newFileCache, changedFile)

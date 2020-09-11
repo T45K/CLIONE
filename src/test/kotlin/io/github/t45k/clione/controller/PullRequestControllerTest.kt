@@ -19,8 +19,10 @@ internal class PullRequestControllerTest {
 
     @Test
     fun testGetComparisonCommits() {
+        // This PR was merged.
+        // Thus, oldCommitHash returns empty string.
         val (oldCommitHash: String, newCommitHash: String) = pullRequestController.getComparisonCommits()
-        assertEquals("6b177f614af8d904df6852150bec0d0af36d3f5a", oldCommitHash)
-        assertEquals("5d758afe17613427350346ec453fd1804c942f74", newCommitHash)
+        assertEquals("", oldCommitHash)
+        assertEquals("e10bdde6df7d804dc9d23c24d6d2b9ea716adc09", newCommitHash)
     }
 }

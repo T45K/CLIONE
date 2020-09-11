@@ -25,6 +25,7 @@ internal class NiCadControllerTest {
     fun test() {
         val pullRequest: PullRequestController = generatePRMock(REPOSITORY_FULL_NAME, 0, COMMIT_HASH)
         val git: GitController = GitController.cloneIfNotExists(REPOSITORY_FULL_NAME, "", pullRequest)
+        git.checkout(COMMIT_HASH)
         val config = RunningConfig("src", Language.JAVA, similarity = 7)
         val cloneDetector = NiCadController(git.getProjectPath().resolve(config.src), config)
 

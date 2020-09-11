@@ -38,6 +38,7 @@ internal class SourcererCCControllerTest {
     fun testOverlapping() {
         val pr = generatePRMock(REPOSITORY_FULL_NAME, 0, "d6f4884a0dfcb37c57b805e1f3d22115d0a76fa2")
         val git = GitController.cloneIfNotExists(REPOSITORY_FULL_NAME, "", pr)
+        git.checkout("d6f4884a0dfcb37c57b805e1f3d22115d0a76fa2")
         val config = RunningConfig("src")
         val cloneDetector = SourcererCCController(git.getProjectPath().resolve(config.src), config)
 

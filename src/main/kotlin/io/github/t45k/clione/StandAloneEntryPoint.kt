@@ -34,7 +34,11 @@ fun main(args: Array<String>) {
     val config: RunningConfig = ConfigGeneratorFactory.fromProperties(propertyName)
 
     val repository: GHRepository = GitHubBuilder.fromEnvironment()
-        .withOAuthToken(oAuthToken, userName)
+        .apply {
+            if (userName.isNotEmpty() && oAuthToken.isNotEmpty()) {
+                this.withOAuthToken(oAuthToken, userName)
+            }
+        }
         .build()
         .getRepository(repositoryFullName)
 
@@ -49,26 +53,30 @@ fun main(args: Array<String>) {
         .filter { pr ->
             entryPoint.logger.info("enter PR#${pr.number}")
             try {
-                val headCommit: String = pr.head.sha
+                val headCommit: String = pr.mergeCommitSha
                 val baseCommit: String = git.getCommonAncestorCommit(pr.base.sha, headCommit)
                 git.findChangedFiles(baseCommit, headCommit)
                     .let { setOf(*it.first.toTypedArray(), *it.second.toTypedArray()) }
                     .any { it.toString().contains(config.src) && it.toString().endsWith(config.lang.extension) }
             } catch (e: MissingObjectException) {
+                entryPoint.logger.error(e.toString())
                 false
             }
         }
         .onEach { git.checkout(mainHead) }
-        .joinToString("\n\n") { pr ->
-            val pullRequest = PullRequestController(pr)
-            val (oldCloneSets, newCloneSets) = CloneTracker(git, pullRequest, config).track().getRaw()
-            """${pr.number}
+        .map {
+            val pullRequest = PullRequestController(it)
+            it.number to CloneTracker(git, pullRequest, config).track().getRaw()
+        }
+        .filter { it.second.first.isNotEmpty() || it.second.second.isNotEmpty() }
+        .joinToString("\n\n") { (prNumber, pair) ->
+            """$prNumber
                     |
                     |new:
-                    |${newCloneSets.joinToString("\n\n") { it.joinToString("\n") }}
+                    |${pair.second.joinToString("\n\n") { it.joinToString("\n") }}
                     |
                     |old:
-                    |${oldCloneSets.joinToString("\n\n") { it.joinToString("\n") }}
+                    |${pair.first.joinToString("\n\n") { it.joinToString("\n") }}
                 """.trimMargin()
         }
         .let { Files.writeString(Path.of("${repositoryFullName.replace("/", "_")}_result"), it) }

@@ -158,7 +158,8 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
     /**
      * Return base commit hash and head of the branch of the pull request.
      */
-    fun getComparisonCommits(): Pair<String, String> = pullRequest.base.sha to pullRequest.head.sha
+    fun getComparisonCommits(): Pair<String, String> =
+        pullRequest.base.sha to (if (pullRequest.isMerged) pullRequest.mergeCommitSha else pullRequest.base.sha)
 
     /**
      * Return GitHub Url of the pull request file base

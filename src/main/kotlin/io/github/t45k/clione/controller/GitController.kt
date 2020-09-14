@@ -3,7 +3,7 @@ package io.github.t45k.clione.controller
 import io.github.t45k.clione.entity.FileChangeType
 import io.github.t45k.clione.entity.FileDiff
 import io.github.t45k.clione.util.EMPTY_NAME_PATH
-import io.github.t45k.clione.util.deleteRecursive
+import io.github.t45k.clione.util.deleteRecursively
 import io.reactivex.rxjava3.core.Observable
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.diff.DiffAlgorithm
@@ -95,7 +95,7 @@ class GitController(private val git: Git) : AutoCloseable {
         Observable.just(repositoryPath)
             .doOnSubscribe { logger.info("[START]\tdelete ${git.repository.directory.parentFile}") }
             .doOnComplete { logger.info("[END]\tdelete ${git.repository.directory.parentFile}") }
-            .subscribe(::deleteRecursive)!!
+            .subscribe(Path::deleteRecursively)!!
     }
 
     fun getProjectPath(): Path = repositoryPath

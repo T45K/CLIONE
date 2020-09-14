@@ -5,6 +5,7 @@ import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.core.CloneTracker
 import io.github.t45k.clione.core.config.ConfigGeneratorFactory
 import io.github.t45k.clione.core.config.RunningConfig
+import io.github.t45k.clione.entity.InvalidConfigSpecifiedException
 import org.eclipse.jgit.errors.MissingObjectException
 import org.kohsuke.github.GHIssueState
 import org.kohsuke.github.GHRepository
@@ -25,12 +26,12 @@ fun main(args: Array<String>) {
         entryPoint.logger.error("Specify repository full name and source file")
         return
     }
+
     val repositoryFullName: String = args[0]
     val propertyName: String = if (args.size > 1) args[1] else "stand_alone"
-
-    val property: ResourceBundle = ResourceBundle.getBundle(propertyName) ?: return
-    val (userName: String, oAuthToken: String) = property
-        .let { (it.getString("USER_NAME") ?: "") to (it.getString("O_AUTH_TOKEN") ?: "") }
+    val (userName: String, oAuthToken: String) = ResourceBundle.getBundle(propertyName)
+        ?.let { (it.getString("USER_NAME") ?: "") to (it.getString("O_AUTH_TOKEN") ?: "") }
+        ?: throw InvalidConfigSpecifiedException("$propertyName.properties was not found")
     val config: RunningConfig = ConfigGeneratorFactory.fromProperties(propertyName)
 
     val repository: GHRepository = GitHubBuilder.fromEnvironment()
@@ -53,9 +54,9 @@ fun main(args: Array<String>) {
         .filter { pr ->
             entryPoint.logger.info("enter PR#${pr.number}")
             try {
-                val headCommit: String = pr.mergeCommitSha
-                val baseCommit: String = git.getCommonAncestorCommit("", headCommit)
-                git.findChangedFiles(baseCommit, headCommit)
+                val mergeCommit: String = pr.mergeCommitSha
+                val parentCommit: String = git.getParentCommit(mergeCommit)
+                git.findChangedFiles(parentCommit, mergeCommit)
                     .let { setOf(*it.first.toTypedArray(), *it.second.toTypedArray()) }
                     .any { it.toString().contains(config.src) && it.toString().endsWith(config.lang.extension) }
             } catch (e: MissingObjectException) {

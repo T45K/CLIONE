@@ -8,7 +8,7 @@ import io.github.t45k.clione.entity.CloneInstance
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.IdCloneMap
-import io.github.t45k.clione.util.deleteRecursive
+import io.github.t45k.clione.util.deleteRecursively
 import org.jgrapht.alg.clique.DegeneracyBronKerboschCliqueFinder
 import org.jgrapht.graph.DefaultEdge
 import org.jgrapht.graph.SimpleGraph
@@ -199,5 +199,5 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) :
      */
     override fun cleanup() =
         generatedDirs.map(sourceCodePath::resolve)
-            .forEach(::deleteRecursive)
+            .forEach(Path::deleteRecursively)
 }

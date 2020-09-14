@@ -12,7 +12,7 @@ import io.github.t45k.clione.entity.IdCloneMap
 import io.github.t45k.clione.entity.InvalidConfigSpecifiedException
 import io.github.t45k.clione.entity.NoPropertyFileExistsException
 import io.github.t45k.clione.util.EMPTY_NAME_PATH
-import io.github.t45k.clione.util.deleteRecursive
+import io.github.t45k.clione.util.deleteRecursively
 import io.github.t45k.clione.util.toRealPath
 import org.jgrapht.alg.clique.DegeneracyBronKerboschCliqueFinder
 import org.jgrapht.graph.DefaultEdge
@@ -208,7 +208,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) :
     override fun cleanup() {
         Files.list(sourceCodePath.parent)
             .filter { it.fileName.toString().startsWith("${sourceCodePath.fileName}_") }
-            .forEach(::deleteRecursive)
+            .forEach(Path::deleteRecursively)
         Files.deleteIfExists(nicadConfigPath)
     }
 }

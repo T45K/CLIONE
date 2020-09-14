@@ -1,5 +1,7 @@
 package io.github.t45k.clione.controller
 
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.internal.storage.file.FileRepository
 import org.kohsuke.github.GitHubBuilder
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -19,10 +21,9 @@ internal class PullRequestControllerTest {
 
     @Test
     fun testGetComparisonCommits() {
-        // This PR was merged.
-        // Thus, oldCommitHash returns empty string.
-        val (oldCommitHash: String, newCommitHash: String) = pullRequestController.getComparisonCommits()
-        assertEquals("", oldCommitHash)
+        val git = GitController(Git(FileRepository("./.git")))
+        val (oldCommitHash: String, newCommitHash: String) = pullRequestController.getComparisonCommits(git)
+        assertEquals("6b177f614af8d904df6852150bec0d0af36d3f5a", oldCommitHash)
         assertEquals("e10bdde6df7d804dc9d23c24d6d2b9ea716adc09", newCommitHash)
     }
 }

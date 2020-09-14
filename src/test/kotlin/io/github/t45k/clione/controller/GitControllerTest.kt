@@ -47,8 +47,8 @@ internal class GitControllerTest {
             .run { PullRequestController(this) }
         val git: GitController = GitController.cloneIfNotExists("alibaba/fastjson", "", pullRequest)
         val changedFiles: Pair<Set<Path>, Set<Path>> = git.findChangedFiles(
-            pullRequest.getComparisonCommits().first,
-            pullRequest.getComparisonCommits().second
+            pullRequest.getComparisonCommits(git).first,
+            pullRequest.getComparisonCommits(git).second
         )
 
         assertEquals(2, changedFiles.first.size)

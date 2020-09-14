@@ -24,7 +24,7 @@ internal class CloneTrackerTest {
     fun test() {
         val config = RunningConfig("src", Language.JAVA, similarity = 7)
         val pullRequest: PullRequestController =
-            generatePRMock(REPOSITORY_FULL_NAME, 0, NEW_COMMIT_HASH, OLD_COMMIT_HASH)
+            generatePRMock(REPOSITORY_FULL_NAME, 0, NEW_COMMIT_HASH)
         val git = GitController.cloneIfNotExists(REPOSITORY_FULL_NAME, "", pullRequest)
         val cloneDetector = NiCadController(git.getProjectPath().resolve(config.src), config)
         val changedFile = setOf(

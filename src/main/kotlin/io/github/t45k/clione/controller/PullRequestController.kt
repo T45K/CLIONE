@@ -156,11 +156,11 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
     /**
      * Return base commit hash and head of the branch of the pull request.
      */
-    fun getComparisonCommits(): Pair<String, String> =
+    fun getComparisonCommits(git: GitController): Pair<String, String> =
         if (pullRequest.isMerged) {
-            "" to pullRequest.mergeCommitSha
+            git.getParentCommit(pullRequest.mergeCommitSha) to pullRequest.mergeCommitSha
         } else {
-            pullRequest.base.sha to pullRequest.head.sha
+            git.getCommonAncestorCommit(pullRequest.base.sha, pullRequest.head.sha) to pullRequest.head.sha
         }
 
     /**

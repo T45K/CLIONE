@@ -30,8 +30,7 @@ class CloneTracker(
     fun track(): TrackingResultGenerator {
         logger.info("[START]\tClone Tracking on ${pullRequest.fullName}/${pullRequest.number}")
 
-        val (oldCommitHash: String, newCommitHash: String) = pullRequest.getComparisonCommits()
-        val baseCommitHash: String = git.getCommonAncestorCommit(oldCommitHash, newCommitHash)
+        val (oldCommitHash: String, newCommitHash: String) = pullRequest.getComparisonCommits(git)
         val cloneDetector: CloneDetectorController = create(sourceCodePath, config)
         val (oldChangedFiles: Set<Path>, newChangedFiles: Set<Path>) = git.findChangedFiles(
             oldCommitHash,
@@ -47,16 +46,16 @@ class CloneTracker(
         val newPathClonesMap: PathClonesMap = newIdCloneMap.values.groupBy { it.filePath }
         logger.info("[END]\tNew revision: $newCommitHash")
 
-        logger.info("[START]\tOld revision: $baseCommitHash")
-        git.checkout(baseCommitHash)
+        logger.info("[START]\tOld revision: $oldCommitHash")
+        git.checkout(oldCommitHash)
         val (oldCloneSets: CloneSets, oldIdCloneMap: IdCloneMap) = cloneDetector.execute(
             oldChangedFiles,
             CloneStatus.DELETE
         )
         val oldPathClonesMap: PathClonesMap = oldIdCloneMap.values.groupBy { it.filePath }
-        logger.info("[END]\tOld revision: $baseCommitHash")
+        logger.info("[END]\tOld revision: $oldCommitHash")
 
-        mapClones(oldPathClonesMap, newPathClonesMap, oldChangedFiles, baseCommitHash, newCommitHash)
+        mapClones(oldPathClonesMap, newPathClonesMap, oldChangedFiles, oldCommitHash, newCommitHash)
 
         logger.info("[END]\tclone tracking on ${pullRequest.number}")
 

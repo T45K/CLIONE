@@ -3,7 +3,7 @@ package io.github.t45k.clione.controller
 import io.github.t45k.clione.entity.FileChangeType
 import io.github.t45k.clione.entity.FileDiff
 import io.github.t45k.clione.util.EMPTY_NAME_PATH
-import io.github.t45k.clione.util.deleteRecursive
+import io.github.t45k.clione.util.deleteRecursively
 import io.reactivex.rxjava3.core.Observable
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.diff.DiffAlgorithm
@@ -95,7 +95,7 @@ class GitController(private val git: Git) : AutoCloseable {
         Observable.just(repositoryPath)
             .doOnSubscribe { logger.info("[START]\tdelete ${git.repository.directory.parentFile}") }
             .doOnComplete { logger.info("[END]\tdelete ${git.repository.directory.parentFile}") }
-            .subscribe(::deleteRecursive)!!
+            .subscribe(Path::deleteRecursively)!!
     }
 
     fun getProjectPath(): Path = repositoryPath
@@ -210,20 +210,19 @@ class GitController(private val git: Git) : AutoCloseable {
             .scan(oldTreeParser, newTreeParser)
     }
 
+    fun getParentCommit(commitHash: String): String =
+        git.repository
+            .parseCommit(ObjectId.fromString(commitHash))
+            .parents[0]
+            .name
+
     fun getCommonAncestorCommit(oldCommitHash: String, newCommitHash: String): String =
-        if (oldCommitHash.isEmpty()) {
-            git.repository
-                .parseCommit(ObjectId.fromString(newCommitHash))
-                .parents[0]
-                .name
-        } else {
-            RevWalk(git.repository)
-                .apply { this.revFilter = RevFilter.MERGE_BASE }
-                .apply { this.markStart(this.parseCommit(ObjectId.fromString(oldCommitHash))) }
-                .apply { this.markStart(this.parseCommit(ObjectId.fromString(newCommitHash))) }
-                .next()
-                .name
-        }
+        RevWalk(git.repository)
+            .apply { this.revFilter = RevFilter.MERGE_BASE }
+            .apply { this.markStart(this.parseCommit(ObjectId.fromString(oldCommitHash))) }
+            .apply { this.markStart(this.parseCommit(ObjectId.fromString(newCommitHash))) }
+            .next()
+            .name
 
     private fun prepareTreeParser(objectId: ObjectId): AbstractTreeIterator {
         val walk: RevWalk = RevWalk(git.repository).apply { this.revFilter = RevFilter.MERGE_BASE }

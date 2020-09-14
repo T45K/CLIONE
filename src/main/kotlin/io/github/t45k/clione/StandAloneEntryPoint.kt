@@ -14,6 +14,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 import java.util.ResourceBundle
 
 class StandAloneEntryPoint(args: Array<String>) {
@@ -70,7 +71,7 @@ class StandAloneEntryPoint(args: Array<String>) {
                 it.number to CloneTracker(git, pullRequest, config).track().getRaw()
             }
             .filter { it.second.first.isNotEmpty() || it.second.second.isNotEmpty() }
-            .joinToString("\n\n") { (prNumber, pair) ->
+            .map { (prNumber, pair) ->
                 """$prNumber
                         |
                         |new:
@@ -78,9 +79,16 @@ class StandAloneEntryPoint(args: Array<String>) {
                         |
                         |old:
                         |${pair.first.joinToString("\n\n") { it.joinToString("\n") }}
+                        |
                     """.trimMargin()
             }
-            .let { Files.writeString(Path.of("${repositoryFullName.replace("/", "_")}_result"), it) }
+            .forEach {
+                Files.writeString(
+                    Path.of("${repositoryFullName.replace("/", "_")}_result"),
+                    it,
+                    StandardOpenOption.APPEND, StandardOpenOption.WRITE
+                )
+            }
     }
 }
 

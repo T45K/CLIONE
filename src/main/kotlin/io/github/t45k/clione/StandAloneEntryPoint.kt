@@ -86,7 +86,7 @@ class StandAloneEntryPoint(args: Array<String>) {
                 Files.writeString(
                     Path.of("${repositoryFullName.replace("/", "_")}_result"),
                     it,
-                    StandardOpenOption.APPEND, StandardOpenOption.WRITE
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND
                 )
             }
     }

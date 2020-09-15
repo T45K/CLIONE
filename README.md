@@ -9,7 +9,7 @@
 
 # What's CLIONE
 CLIONE is a code clone modification support bot.<br>
-CLIONE execution is triggered by Pull Requests, and it notifies inconsistently modified or newly added clone sets between the pull request.
+CLIONE execution is triggered by Pull Requests, and it notifies inconsistently modified or newly added clone sets between the pull requests.
 
 ## Use as a GitHub bot
 1. Click [here](https://github.com/apps/clione-bot) to register your GitHub account and repository to which you want to apply CLIONE.
@@ -33,13 +33,15 @@ Simple example is [here](./.clione/config.toml).
 You can build your own CLIONE server.
 1. Setting your GitHub Apps (see https://developer.github.com/apps/).
 1. Download Txl and NiCad clone detector from [here](https://www.txl.ca/) and install them (if you use them).
-1. `git clone git@github.com:T45K/CLIONE` and fill in `src/main/resources/github.properties`, `src/main/resources/verify.properties` and `src/main/resources/resource.properties`.
+1. `git clone git@github.com:T45K/CLIONE`
+1. Fill in `src/main/resources/github.properties`, `src/main/resources/verify.properties` and `src/main/resources/resource.properties`.
 1. `./gradlew run` (default port is `3000`).
 
 ## Use as a stand alone tool
-You can also CLIONE as a stand alone tool to detect modification-target code fragments from past pull requests.
-1. Download Txl and NiCad clone detector from [here](https://www.txl.ca/) and install them (if you use them).
-1. `git clone git@github.com:T45K/CLIONE` and fill `src/main/resources/resource.properties` and `src/main/resources/stand_alone.properties`.<br>You specify settings (src, lang, etc.,) in `stand_alone.properties`.
+You can also use CLIONE as a stand alone tool to detect modification-target clones from past pull requests.
+1. Download `TXL` and `NiCad` clone detector from [here](https://www.txl.ca/) and install them (if you use them).
+1. `git clone git@github.com:T45K/CLIONE`
+1. Fill in `src/main/resources/resource.properties` and `src/main/resources/stand_alone.properties`.<br>Settings(src, lang, etc.,) should be described in `stand_alone.properties`.
 1. `./gradlre stand_alone -Pargs = "user(or organization)_name/repo_name"`
 
 ___

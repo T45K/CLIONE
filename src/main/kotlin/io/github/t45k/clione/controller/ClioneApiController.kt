@@ -70,6 +70,7 @@ class ClioneApiController {
 
         try {
             GitController.cloneIfNotExists(repositoryFullName, token, pullRequest).use { git ->
+                git.checkout(pullRequest.headCommitHash)
                 val config: RunningConfig = if (Files.exists(git.getProjectPath().resolve(CONFIGURATION_LOCATION))) {
                     git.getProjectPath().resolve(CONFIGURATION_LOCATION)
                         .let(Files::readString)

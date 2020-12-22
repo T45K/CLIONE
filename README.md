@@ -82,3 +82,16 @@ CLIONEは単体ツールとしても利用できます．
 1. NiCadを使いたい場合，[ここ](https://www.txl.ca/)からTxlとNiCadをインストールしてください
 1. このリポジトリをクローンして，`src/main/resources/stand_alone.properties`，`src/main/resources/resource.properties`に必要な情報を記載してください．<br>また，`stand_alone.properties`にsrcやlangなどの設定を記載してください
 1. `./gradlew stand_alone -Pargs = "user(or organization)_name/repo_name"`
+
+# Cite
+```
+@inproceedings{clione,
+         title = {CLIONE: Clone Modification Support for Pull Request Based Development},
+        author = {Tasuku Nakagawa and Yoshiki Higo and Shinji Kusumoto},
+     booktitle = {the 27th Asia-Pacific Software Engineering Conference (APSEC)},
+         pages = {455-459},
+         month = {12},
+          year = {2020},
+}
+```
+The paper is published [here](https://sdl.ist.osaka-u.ac.jp/pman/pman3.cgi?D=675).

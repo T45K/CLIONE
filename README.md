@@ -42,7 +42,7 @@ You can also use CLIONE as a stand alone tool to detect modification-target clon
 1. Download `TXL` and `NiCad` clone detector from [here](https://www.txl.ca/) and install them (if you use them).
 1. `git clone git@github.com:T45K/CLIONE`
 1. Fill in `src/main/resources/resource.properties` and `src/main/resources/stand_alone.properties`.<br>Settings(src, lang, etc.,) should be described in `stand_alone.properties`.
-1. `./gradlre stand_alone -Pargs = "user(or organization)_name/repo_name"`
+1. `./gradlre standalone -Pargs = "user(or organization)_name/repo_name"`
 
 ___
 
@@ -81,7 +81,7 @@ CLIONEは単体ツールとしても利用できます．
 過去のプルリクから対象のクローンを検出します．
 1. NiCadを使いたい場合，[ここ](https://www.txl.ca/)からTxlとNiCadをインストールしてください
 1. このリポジトリをクローンして，`src/main/resources/stand_alone.properties`，`src/main/resources/resource.properties`に必要な情報を記載してください．<br>また，`stand_alone.properties`にsrcやlangなどの設定を記載してください
-1. `./gradlew stand_alone -Pargs = "user(or organization)_name/repo_name"`
+1. `./gradlew standalone -Pargs = "user(or organization)_name/repo_name"`
 
 # Cite
 ```

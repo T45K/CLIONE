@@ -4,7 +4,7 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.fasterxml.jackson.databind.JsonNode
 import io.github.t45k.clione.controller.PullRequestController
-import io.github.t45k.clione.entity.NoPropertyFileExistsException
+import io.github.t45k.clione.entity.NoPropertyFileException
 import io.github.t45k.clione.util.DigestUtil
 import io.github.t45k.clione.util.minutesAfter
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -21,16 +21,16 @@ class GitHubAuthenticator {
             Security.addProvider(BouncyCastleProvider())
         }
 
-        private val bundle: ResourceBundle = ResourceBundle.getBundle("github")
-            ?: throw NoPropertyFileExistsException("github.properties does not exist")
+        private val resourceBundle: ResourceBundle = ResourceBundle.getBundle("github")
+            ?: throw NoPropertyFileException("github.properties does not exist")
         private val githubPrivateKey: RSAPrivateKey =
-            DigestUtil.getRSAPrivateKeyFromPEMFileContents(bundle.getString("GITHUB_PRIVATE_KEY"))
-        private val githubAppIdentifier: String = bundle.getString("GITHUB_APP_IDENTIFIER")
+            DigestUtil.getRSAPrivateKeyFromPEMFileContents(resourceBundle.getString("GITHUB_PRIVATE_KEY"))
+        private val githubAppIdentifier: String = resourceBundle.getString("GITHUB_APP_IDENTIFIER")
 
-        fun authenticateFromPullRequest(json: JsonNode): Pair<PullRequestController, String> =
+        fun authenticateFromPullRequest(json: JsonNode): Pair<PullRequestController, Token> =
             authenticate(json, json["number"].asInt())
 
-        fun authenticateFromCheckRun(json: JsonNode): Pair<PullRequestController, String> =
+        fun authenticateFromCheckRun(json: JsonNode): Pair<PullRequestController, Token> =
             authenticate(json, json["check_run"]["pull_requests"][0]["number"].asInt())
 
         /**
@@ -40,7 +40,7 @@ class GitHubAuthenticator {
          *
          * @return PullRequest information and token for 'git clone'
          */
-        private fun authenticate(json: JsonNode, pullRequestNumber: Int): Pair<PullRequestController, String> {
+        private fun authenticate(json: JsonNode, pullRequestNumber: Int): Pair<PullRequestController, Token> {
             val token: String = authenticateApp()
                 .run { generateToken(this, json["installation"]["id"].asLong()) }
 
@@ -76,10 +76,13 @@ class GitHubAuthenticator {
          * GitHub App, to run API operations.
          */
         @Suppress("DEPRECATION")
-        private fun generateToken(appClient: GitHub, installationId: Long): String =
+        private fun generateToken(appClient: GitHub, installationId: Long): Token =
             appClient.app.getInstallationById(installationId)
                 .createToken()
                 .create()
                 .token
     }
+
 }
+
+typealias Token = String

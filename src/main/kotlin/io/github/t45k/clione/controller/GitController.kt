@@ -95,7 +95,7 @@ class GitController(private val git: Git) : AutoCloseable {
         Observable.just(repositoryPath)
             .doOnSubscribe { logger.info("[START]\tdelete ${git.repository.directory.parentFile}") }
             .doOnComplete { logger.info("[END]\tdelete ${git.repository.directory.parentFile}") }
-            .subscribe(Path::deleteRecursively)!!
+            .subscribe{it.deleteRecursively()}
     }
 
     fun getProjectPath(): Path = repositoryPath

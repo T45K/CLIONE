@@ -4,7 +4,7 @@ import com.mondego.indexbased.SearchManager
 import io.github.t45k.clione.controller.cloneDetector.cloneCandidate.CloneCandidateExtractor
 import io.github.t45k.clione.core.config.RunningConfig
 import io.github.t45k.clione.entity.BagOfToken
-import io.github.t45k.clione.entity.CloneInstance
+import io.github.t45k.clione.entity.CloneCandidate
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.IdCloneMap
@@ -124,9 +124,9 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) :
                 cloneCandidateExtractor.extract(Files.readString(it), it, status).asSequence()
             }
             .mapIndexed { index, (candidate, block) -> (index + 1 to candidate.setId(index)) to block.toBagOfToken() }
-            .fold(mutableMapOf<Int, CloneInstance>() to mutableListOf()) { acc: Pair<MutableMap<Int, CloneInstance>, MutableList<BagOfToken>>,
-                                                                           (indexedCloneInstance: Pair<Int, CloneInstance>, bagOfToken: BagOfToken) ->
-                acc.first.also { it[indexedCloneInstance.first] = indexedCloneInstance.second } to
+            .fold(mutableMapOf<Int, CloneCandidate>() to mutableListOf()) { acc: Pair<MutableMap<Int, CloneCandidate>, MutableList<BagOfToken>>,
+                                                                            (indexedCloneCandidate: Pair<Int, CloneCandidate>, bagOfToken: BagOfToken) ->
+                acc.first.also { it[indexedCloneCandidate.first] = indexedCloneCandidate.second } to
                     acc.second.also { it.add(bagOfToken) }
             }
 
@@ -199,5 +199,5 @@ class SourcererCCController(sourceCodePath: Path, config: RunningConfig) :
      */
     override fun cleanup() =
         generatedDirs.map(sourceCodePath::resolve)
-            .forEach(Path::deleteRecursively)
+            .forEach { it.deleteRecursively() }
 }

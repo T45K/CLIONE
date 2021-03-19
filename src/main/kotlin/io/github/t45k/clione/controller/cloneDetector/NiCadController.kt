@@ -5,12 +5,12 @@ import com.google.common.annotations.VisibleForTesting
 import io.github.t45k.clione.core.config.Granularity
 import io.github.t45k.clione.core.config.Language
 import io.github.t45k.clione.core.config.RunningConfig
-import io.github.t45k.clione.entity.CloneInstance
+import io.github.t45k.clione.entity.CloneCandidate
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.IdCloneMap
 import io.github.t45k.clione.entity.InvalidConfigSpecifiedException
-import io.github.t45k.clione.entity.NoPropertyFileExistsException
+import io.github.t45k.clione.entity.NoPropertyFileException
 import io.github.t45k.clione.util.EMPTY_NAME_PATH
 import io.github.t45k.clione.util.deleteRecursively
 import io.github.t45k.clione.util.toRealPath
@@ -31,7 +31,9 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) :
     companion object {
         private val nicadDir: Path = ResourceBundle.getBundle("resource")
             ?.getString("NICAD_DIR")?.run { Path.of(this) }
-            ?: throw NoPropertyFileExistsException("resource.properties does not exist")
+            ?: throw NoPropertyFileException("resource.properties does not exist")
+
+        private val dummyCloneInstance = CloneCandidate(EMPTY_NAME_PATH, 0, 0, 0, CloneStatus.ADD)
     }
 
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -56,7 +58,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) :
         logger.info("[START]\tClone detection")
         detectClones()
         val fileCache: MutableMap<Path, List<String>> = mutableMapOf()
-        val (cloneSets: CloneSets, idCloneMap: MutableMap<Int, CloneInstance>) = collectResult(
+        val (cloneSets: CloneSets, idCloneMap: MutableMap<Int, CloneCandidate>) = collectResult(
             changedFiles,
             initialCloneStatus,
             fileCache
@@ -87,7 +89,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) :
     }
 
     @VisibleForTesting
-    fun parseCandidateXML(fileCache: MutableMap<Path, List<String>>, changedFiles: Set<Path>): List<CloneInstance> =
+    fun parseCandidateXML(fileCache: MutableMap<Path, List<String>>, changedFiles: Set<Path>): List<CloneCandidate> =
         Files.readAllLines(cloneCandidateDataPath)
             .filter { it.matches("<source file=\"[^\"]+\" startline=\"[0-9]+\" endline=\"[0-9]+\">".toRegex()) }
             .asSequence()
@@ -99,14 +101,13 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) :
                         val filePath: Path = fileName.toRealPath()
                         // No need to check a stable file
                         if (!changedFiles.contains(filePath) || startLine == endLine) {
-                            // dummy
-                            return@mapIndexed CloneInstance(EMPTY_NAME_PATH, 0, 0, 0, CloneStatus.ADD)
+                            return@mapIndexed dummyCloneInstance
                         }
                         val tokenSequence: List<String> = fileCache.computeIfAbsent(filePath) { Files.readAllLines(it) }
                             .subList(startLine.toInt(), endLine.toInt() - 1)
                             .joinToString("\n")
                             .let { config.lang.tokenizer.tokenize(it) }
-                        CloneInstance(
+                        CloneCandidate(
                             filePath,
                             startLine.toInt(),
                             endLine.toInt(),
@@ -116,28 +117,27 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) :
                         )
                     }
             }
-            .filterNot { it.filePath === EMPTY_NAME_PATH }
+            .filterNot { it === dummyCloneInstance }
             .toList()
 
     @VisibleForTesting
     fun collectResult(changedFiles: Set<Path>, initialStatus: CloneStatus, fileCache: MutableMap<Path, List<String>>)
-        : Pair<CloneSets, MutableMap<Int, CloneInstance>> =
+        : Pair<CloneSets, MutableMap<Int, CloneCandidate>> =
         parseResultXML()
             .map {
                 convertXmlElementToCloneInstance(it.first, initialStatus, changedFiles, fileCache) to
                     convertXmlElementToCloneInstance(it.second, initialStatus, changedFiles, fileCache)
             }
-            .fold(SimpleGraph<Int, DefaultEdge>(DefaultEdge::class.java) to mutableMapOf<Int, CloneInstance>(),
-                { (cloneRelationGraph, idCloneMap), clonePair ->
-                    cloneRelationGraph.addVertex(clonePair.first.id)
-                    cloneRelationGraph.addVertex(clonePair.second.id)
-                    cloneRelationGraph.addEdge(clonePair.first.id, clonePair.second.id)
+            .fold(SimpleGraph<Int, DefaultEdge>(DefaultEdge::class.java) to mutableMapOf<Int, CloneCandidate>()) { (cloneRelationGraph, idCloneMap), clonePair ->
+                cloneRelationGraph.addVertex(clonePair.first.id)
+                cloneRelationGraph.addVertex(clonePair.second.id)
+                cloneRelationGraph.addEdge(clonePair.first.id, clonePair.second.id)
 
-                    idCloneMap[clonePair.first.id] = clonePair.first
-                    idCloneMap[clonePair.second.id] = clonePair.second
+                idCloneMap[clonePair.first.id] = clonePair.first
+                idCloneMap[clonePair.second.id] = clonePair.second
 
-                    cloneRelationGraph to idCloneMap
-                })
+                cloneRelationGraph to idCloneMap
+            }
             .let {
                 DegeneracyBronKerboschCliqueFinder(it.first)
                     .iterator()
@@ -163,7 +163,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) :
     private fun convertXmlElementToCloneInstance(
         element: Element, initialStatus: CloneStatus, changedFiles: Set<Path>,
         fileCache: MutableMap<Path, List<String>>
-    ): CloneInstance {
+    ): CloneCandidate {
         val filePath: Path = element.getAttribute("file").toRealPath()
         val startLine: Int = element.getAttribute("startline").toInt()
         val endLine: Int = element.getAttribute("endline").toInt()
@@ -173,10 +173,10 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) :
                 .subList(startLine, endLine - 1)
                 .joinToString("\n")
                 .let { config.lang.tokenizer.tokenize(it) }
-            CloneInstance(filePath, startLine, endLine, id, initialStatus, tokenSequence)
+            CloneCandidate(filePath, startLine, endLine, id, initialStatus, tokenSequence)
         } else {
             // If the file that contains this clone is not changed, the clone must be stable
-            CloneInstance(filePath, startLine, endLine, id, CloneStatus.STABLE)
+            CloneCandidate(filePath, startLine, endLine, id, CloneStatus.STABLE)
         }
     }
 
@@ -208,7 +208,7 @@ class NiCadController(sourceCodePath: Path, config: RunningConfig) :
     override fun cleanup() {
         Files.list(sourceCodePath.parent)
             .filter { it.fileName.toString().startsWith("${sourceCodePath.fileName}_") }
-            .forEach(Path::deleteRecursively)
+            .forEach { it.deleteRecursively() }
         Files.deleteIfExists(nicadConfigPath)
     }
 }

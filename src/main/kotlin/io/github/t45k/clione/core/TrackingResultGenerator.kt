@@ -1,6 +1,6 @@
 package io.github.t45k.clione.core
 
-import io.github.t45k.clione.entity.CloneInstance
+import io.github.t45k.clione.entity.CloneCandidate
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.IdCloneMap
 import io.github.t45k.clione.entity.InstancedCloneSets
@@ -31,9 +31,9 @@ class TrackingResultGenerator(
             stableClones > 0 && stableClones + cloneSet.count { it.status == CloneStatus.DELETE } == cloneSet.size
         }
 
-        val inconsistentlyChangedCloneSets = mutableListOf<List<CloneInstance>>()
-        val newlyAddedCloneSets = mutableListOf<List<CloneInstance>>()
-        val newCloneAddedCloneSets = mutableListOf<List<CloneInstance>>()
+        val inconsistentlyChangedCloneSets = mutableListOf<List<CloneCandidate>>()
+        val newlyAddedCloneSets = mutableListOf<List<CloneCandidate>>()
+        val newCloneAddedCloneSets = mutableListOf<List<CloneCandidate>>()
 
         cloneSets.forEach { cloneSet ->
             when {
@@ -64,14 +64,14 @@ class TrackingResultGenerator(
                     }
                 }
             })
-            .distinctBy { list: List<CloneInstance> ->
+            .distinctBy { list: List<CloneCandidate> ->
                 list.map { Triple(it.filePath, it.startLine, it.endLine) }.toSet()
             }
 
-    private fun List<CloneInstance>.isNewlyAddedCloneSets(): Boolean =
+    private fun List<CloneCandidate>.isNewlyAddedCloneSets(): Boolean =
         this.count { it.status == CloneStatus.ADD } >= this.size - 1
 
-    private fun List<CloneInstance>.isNewCloneAddedCloneSets(): Boolean =
+    private fun List<CloneCandidate>.isNewCloneAddedCloneSets(): Boolean =
         this.any { it.status == CloneStatus.ADD } &&
             (this.all { it.status == CloneStatus.ADD || it.status == CloneStatus.MODIFY } ||
                 this.all { it.status == CloneStatus.ADD || it.status == CloneStatus.STABLE })

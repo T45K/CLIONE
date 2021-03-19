@@ -1,6 +1,6 @@
 package io.github.t45k.clione.controller.cloneDetector.cloneCandidate
 
-import io.github.t45k.clione.entity.CloneInstance
+import io.github.t45k.clione.entity.CloneCandidate
 import io.github.t45k.clione.entity.CloneStatus
 import java.nio.file.Path
 
@@ -14,6 +14,6 @@ data class LazyCloneInstance(
     var status: CloneStatus,
     val tokenSequence: List<String> = emptyList()
 ) {
-    fun setId(id: Int): CloneInstance =
-        CloneInstance(filePath, startLine, endLine, id, status, tokenSequence)
+    fun setId(id: Int): CloneCandidate =
+        CloneCandidate(filePath, startLine, endLine, id, status, tokenSequence)
 }

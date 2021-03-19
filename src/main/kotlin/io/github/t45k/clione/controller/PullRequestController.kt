@@ -1,7 +1,7 @@
 package io.github.t45k.clione.controller
 
 import io.github.t45k.clione.core.TrackingResult
-import io.github.t45k.clione.entity.CloneInstance
+import io.github.t45k.clione.entity.CloneCandidate
 import io.github.t45k.clione.entity.CloneStatus
 import org.kohsuke.github.GHCheckRun
 import org.kohsuke.github.GHCheckRunBuilder
@@ -55,11 +55,11 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
         logger.info("[END]\tComment about $fullName/${pullRequest.number}")
     }
 
-    private fun createCommentAboutInconsistentlyChangedClones(cloneSet: List<CloneInstance>) {
+    private fun createCommentAboutInconsistentlyChangedClones(cloneSet: List<CloneCandidate>) {
         val changedClone = cloneSet.find { it.status == CloneStatus.MODIFY }
             ?: return
 
-        val otherClones: List<CloneInstance> = cloneSet.filter { it.status != CloneStatus.MODIFY }
+        val otherClones: List<CloneCandidate> = cloneSet.filter { it.status != CloneStatus.MODIFY }
 
         val form = if (otherClones.size == 1) {
             "fragment is"
@@ -91,7 +91,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
         )
     }
 
-    private fun createCommentAboutNewlyCreatedCloneSet(cloneSet: List<CloneInstance>) {
+    private fun createCommentAboutNewlyCreatedCloneSet(cloneSet: List<CloneCandidate>) {
         val src: Regex = "storage/[^/]+/[^/]+/".toRegex()
         val clonePlaces: String =
             cloneSet.joinToString("\n") { "${getFileUrlBase()}/${src.split(it.filePath.toString())[1]}#L${it.startLine}-L${it.endLine}" }
@@ -110,11 +110,11 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
             .commitId(pullRequest.head.sha)
     }
 
-    private fun createCommentAboutNewCloneAddedCloneSet(cloneSet: List<CloneInstance>) {
+    private fun createCommentAboutNewCloneAddedCloneSet(cloneSet: List<CloneCandidate>) {
         val addedClone = cloneSet.find { it.status == CloneStatus.ADD }
             ?: return
 
-        val otherClones: List<CloneInstance> = cloneSet.filter { it != addedClone }
+        val otherClones: List<CloneCandidate> = cloneSet.filter { it != addedClone }
 
         val src: Regex = "storage/[^/]+/[^/]+/".toRegex()
         val fileName = src.split(addedClone.filePath.toString())[1]
@@ -139,7 +139,7 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
         )
     }
 
-    private fun calculateMultiLines(clone: CloneInstance, detail: GHPullRequestFileDetail): List<Pair<Int, Int>> =
+    private fun calculateMultiLines(clone: CloneCandidate, detail: GHPullRequestFileDetail): List<Pair<Int, Int>> =
         "\\+([0-9]+,[0-9]+)\\s".toRegex().findAll(detail.patch)
             .map { it.value }
             .map { it.substring(1, it.length - 1) }

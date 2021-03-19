@@ -4,7 +4,7 @@ import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.core.config.Language
 import io.github.t45k.clione.core.config.RunningConfig
-import io.github.t45k.clione.entity.CloneInstance
+import io.github.t45k.clione.entity.CloneCandidate
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.IdCloneMap
 import io.github.t45k.clione.util.generatePRMock
@@ -41,7 +41,7 @@ internal class NiCadControllerTest {
         assertNotNull(idCloneMap[1])
         assertNotNull(idCloneMap[4])
 
-        val clones: List<CloneInstance> = cloneDetector.parseCandidateXML(fileCache, changedFiles)
+        val clones: List<CloneCandidate> = cloneDetector.parseCandidateXML(fileCache, changedFiles)
         assertEquals(6, clones.size)
 
         git.close()

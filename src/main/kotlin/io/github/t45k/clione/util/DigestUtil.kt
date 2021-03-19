@@ -23,7 +23,7 @@ class DigestUtil {
             Mac.getInstance(algorithm)
                 .apply {
                     val secretKeySpec = SecretKeySpec(secret.toByteArray(), algorithm)
-                    this.init(secretKeySpec)
+                    init(secretKeySpec)
                 }
                 .doFinal(contents.toByteArray())
                 .let(Hex::encodeHex)

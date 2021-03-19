@@ -6,7 +6,7 @@ import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.controller.cloneDetector.CloneDetectorController
 import io.github.t45k.clione.controller.cloneDetector.create
 import io.github.t45k.clione.core.config.RunningConfig
-import io.github.t45k.clione.entity.CloneInstance
+import io.github.t45k.clione.entity.CloneCandidate
 import io.github.t45k.clione.entity.CloneSets
 import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.FileChangeType
@@ -65,7 +65,7 @@ class CloneTracker(
     }
 
     @VisibleForTesting
-    fun filterTargetClones(cloneSets: CloneSets, idCloneMap: IdCloneMap): List<List<CloneInstance>> =
+    fun filterTargetClones(cloneSets: CloneSets, idCloneMap: IdCloneMap): List<List<CloneCandidate>> =
         cloneSets.filterNot { cloneSet ->
             cloneSet.all { (idCloneMap[it] ?: error("")).status == CloneStatus.STABLE }
                 || cloneSet.all { (idCloneMap[it] ?: error("")).status == CloneStatus.MODIFY }
@@ -75,10 +75,13 @@ class CloneTracker(
 
     @VisibleForTesting
     fun mapClones(
-        oldPathClonesMap: PathClonesMap, newPathClonesMap: PathClonesMap, oldChangedFiles: Set<Path>,
-        oldCommitHash: String, newCommitHash: String
+        oldPathClonesMap: PathClonesMap,
+        newPathClonesMap: PathClonesMap,
+        oldChangedFiles: Set<Path>,
+        oldCommitHash: String,
+        newCommitHash: String
     ) {
-        for ((oldFilePath: Path, clones: List<CloneInstance>) in oldPathClonesMap.entries) {
+        for ((oldFilePath: Path, clones: List<CloneCandidate>) in oldPathClonesMap.entries) {
             if (!oldChangedFiles.contains(oldFilePath)) {
                 continue
             }
@@ -89,7 +92,7 @@ class CloneTracker(
                 continue
             }
 
-            val candidates: List<CloneInstance> = newPathClonesMap[newFilePath] ?: emptyList()
+            val candidates: List<CloneCandidate> = newPathClonesMap[newFilePath] ?: emptyList()
             if (addedLines.isEmpty() && deletedLines.isEmpty()) {
                 clones.forEach { it.status = CloneStatus.STABLE }
                 candidates.forEach { it.status = CloneStatus.STABLE }
@@ -100,7 +103,7 @@ class CloneTracker(
     }
 
     private fun mapClonesInSameFile(
-        clones: List<CloneInstance>, mappingCandidates: List<CloneInstance>,
+        clones: List<CloneCandidate>, mappingCandidates: List<CloneCandidate>,
         addedLines: List<Int>, deletedLines: List<Int>
     ) {
         clones.forEach { oldClone ->
@@ -110,28 +113,27 @@ class CloneTracker(
                 oldClone.endLine - if (deletedLines.isEmpty()) 0 else deletedLines[oldClone.endLine - 1]
 
             mappingCandidates.asSequence()
-                .filter { candidate: CloneInstance ->
+                .filter { candidate: CloneCandidate ->
                     val newStartLine: Int =
                         candidate.startLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.startLine - 1]
                     val newEndLine: Int =
                         candidate.endLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.endLine - 1]
                     calcLineOverlapping(newStartLine, newEndLine, oldStartLine, oldEndLine) >= 0.3
-                }.maxByOrNull { candidate: CloneInstance ->
+                }.maxBy { candidate: CloneCandidate ->
                     val newStartLine: Int =
                         candidate.startLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.startLine - 1]
                     val newEndLine: Int =
                         candidate.endLine - if (addedLines.isEmpty()) 0 else addedLines[candidate.endLine - 1]
                     calcLineOverlapping(newStartLine, newEndLine, oldStartLine, oldEndLine)
-                }
-                ?.let {
-                    it.mapperCloneInstanceId = oldClone.id
-                    oldClone.mapperCloneInstanceId = it.id
+                }?.let { candidate ->
+                    candidate.mapperCloneInstanceId = oldClone.id
+                    oldClone.mapperCloneInstanceId = candidate.id
 
-                    if (it.tokenSequence == oldClone.tokenSequence) {
-                        it.status = CloneStatus.STABLE
+                    if (candidate.tokenSequence == oldClone.tokenSequence) {
+                        candidate.status = CloneStatus.STABLE
                         oldClone.status = CloneStatus.STABLE
                     } else {
-                        it.status = CloneStatus.MODIFY
+                        candidate.status = CloneStatus.MODIFY
                         oldClone.status = CloneStatus.MODIFY
                     }
                 }

@@ -7,7 +7,7 @@ import io.github.t45k.clione.core.TrackingResult
 import io.github.t45k.clione.core.config.ConfigGeneratorFactory
 import io.github.t45k.clione.core.config.RunningConfig
 import io.github.t45k.clione.core.config.Style
-import io.github.t45k.clione.entity.NoPropertyFileExistsException
+import io.github.t45k.clione.entity.NoPropertyFileException
 import io.github.t45k.clione.github.GitHubAuthenticator
 import io.github.t45k.clione.util.DigestUtil
 import org.slf4j.Logger
@@ -33,7 +33,7 @@ class ClioneApiController {
 
         private val githubWebhookSecret: String = ResourceBundle.getBundle("verify")
             ?.getString("GITHUB_WEBHOOK_SECRET")
-            ?: throw NoPropertyFileExistsException("verify.properties does not exist")
+            ?: throw NoPropertyFileException("verify.properties does not exist")
 
         private const val CONFIGURATION_LOCATION = ".clione/config.toml"
     }
@@ -51,18 +51,17 @@ class ClioneApiController {
         }
 
         val json: JsonNode = ObjectMapper().readTree(rawRequestBody)
+        val isPullRequestOpened: Boolean = request.getHeader(WEBHOOK_EVENT) == "pull_request"
+            && json["action"].asText() == "opened"
+        val isCheckRunOpened: Boolean = request.getHeader(WEBHOOK_EVENT) == "check_run"
+            && json["action"].asText() == "requested_action"
+            && json["requested_action"]["identifier"].asText() == "rerun"
+
         val (pullRequest: PullRequestController, token: String) =
-            if (request.getHeader(WEBHOOK_EVENT) == "pull_request" &&
-                json["action"].asText() == "opened"
-            ) {
-                GitHubAuthenticator.authenticateFromPullRequest(json)
-            } else if (request.getHeader(WEBHOOK_EVENT) == "check_run"
-                && json["action"].asText() == "requested_action"
-                && json["requested_action"]["identifier"].asText() == "rerun"
-            ) {
-                GitHubAuthenticator.authenticateFromCheckRun(json)
-            } else {
-                return
+            when {
+                isPullRequestOpened -> GitHubAuthenticator.authenticateFromPullRequest(json)
+                isCheckRunOpened -> GitHubAuthenticator.authenticateFromCheckRun(json)
+                else -> return
             }
 
         val repositoryFullName = json["repository"]["full_name"].asText()
@@ -71,14 +70,15 @@ class ClioneApiController {
         try {
             GitController.cloneIfNotExists(repositoryFullName, token, pullRequest).use { git ->
                 git.checkout(pullRequest.headCommitHash)
-                val config: RunningConfig = if (Files.exists(git.getProjectPath().resolve(CONFIGURATION_LOCATION))) {
-                    git.getProjectPath().resolve(CONFIGURATION_LOCATION)
-                        .let(Files::readString)
-                        .let(ConfigGeneratorFactory::fromToml)
-                } else {
-                    logger.info("$repositoryFullName doesn't have config.toml")
-                    return
-                }
+                val config: RunningConfig =
+                    if (Files.exists(git.getProjectPath().resolve(CONFIGURATION_LOCATION))) {
+                        git.getProjectPath().resolve(CONFIGURATION_LOCATION)
+                            .let(Files::readString)
+                            .let(ConfigGeneratorFactory::fromToml)
+                    } else {
+                        logger.info("$repositoryFullName doesn't have config.toml")
+                        return
+                    }
 
                 if (config.style == Style.NONE) {
                     logger.info("$repositoryFullName specifies none style")

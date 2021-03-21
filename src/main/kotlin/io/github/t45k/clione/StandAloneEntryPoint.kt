@@ -1,10 +1,12 @@
 package io.github.t45k.clione
 
+import com.github.kusumotolab.sdl4j.util.CommandLine
 import io.github.t45k.clione.controller.GitController
 import io.github.t45k.clione.controller.PullRequestController
 import io.github.t45k.clione.core.CloneTracker
 import io.github.t45k.clione.core.config.ConfigGeneratorFactory
 import io.github.t45k.clione.core.config.RunningConfig
+import io.github.t45k.clione.entity.CloneStatus
 import io.github.t45k.clione.entity.InvalidConfigSpecifiedException
 import org.kohsuke.github.GHIssueState
 import org.kohsuke.github.GHPullRequest
@@ -12,6 +14,10 @@ import org.kohsuke.github.GHRepository
 import org.kohsuke.github.GitHubBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
+import java.net.URL
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardOpenOption
@@ -49,13 +55,22 @@ class StandAloneEntryPoint(args: Array<String>) {
         git = GitController.cloneIfNotExists(repositoryFullName, userName, oAuthToken, repository.defaultBranch)
     }
 
+    private fun fetchMergeCommitByParsingHTML(prNumber: Int): String =
+        URL("https://github.com/$repositoryFullName/pull/$prNumber").openConnection().getInputStream()
+            .let(::InputStreamReader)
+            .let(::BufferedReader)
+            .lineSequence()
+            .first { it.trim().startsWith("merged commit") }
+            .substringAfter("commit/").substring(0, 40)
+
     fun run() {
+        var targetCount = 0
         repository.getPullRequests(GHIssueState.CLOSED).asSequence()
             .filter { it.isMerged }
             .filter { pr: GHPullRequest ->
                 logger.info("enter PR#${pr.number}")
                 try {
-                    val mergeCommit: String = pr.mergeCommitSha
+                    val mergeCommit: String = fetchMergeCommitByParsingHTML(pr.number)
                     val parentCommit: String = git.getParentCommit(mergeCommit)
                     git.findChangedFiles(parentCommit, mergeCommit)
                         .let { setOf(*it.first.toTypedArray(), *it.second.toTypedArray()) }
@@ -65,22 +80,25 @@ class StandAloneEntryPoint(args: Array<String>) {
                     false
                 }
             }
-            .onEach { git.checkout(mainHead) }
+            .onEach { targetCount++ }
+            .onEach { //git.checkout(mainHead)
+                CommandLine().execute(File("./storage/$repositoryFullName"), "git", "checkout", mainHead)
+            }
             .map {
                 val pullRequest = PullRequestController(it)
                 it.number to CloneTracker(git, pullRequest, config).track().getRaw()
             }
-            .filter { it.second.first.isNotEmpty() || it.second.second.isNotEmpty() }
+            .filterNot { it.second.first.isEmpty() }
             .map { (prNumber, pair) ->
-                """$prNumber
-                        |
-                        |new:
-                        |${pair.second.joinToString("\n\n") { it.joinToString("\n") }}
-                        |
-                        |old:
-                        |${pair.first.joinToString("\n\n") { it.joinToString("\n") }}
-                        |
-                    """.trimMargin()
+                val old = pair.first
+                val stables: Int = old.filter { cloneSet -> cloneSet.all { it.status == CloneStatus.MODIFY } }.count()
+                val inconsistent: Int =
+                    old.filter { cloneSet ->
+                        cloneSet.any { it.status == CloneStatus.STABLE }
+                            && cloneSet.any { it.status == CloneStatus.MODIFY }
+                    }
+                        .count()
+                "$prNumber\n$stables\n$inconsistent\n${old.joinToString("\n\n") { it.joinToString("\n") }}\n\n"
             }
             .forEach {
                 Files.writeString(
@@ -89,6 +107,7 @@ class StandAloneEntryPoint(args: Array<String>) {
                     StandardOpenOption.CREATE, StandardOpenOption.APPEND
                 )
             }
+        println(targetCount)
     }
 }
 

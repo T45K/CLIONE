@@ -10,6 +10,9 @@ import org.kohsuke.github.GHPullRequestFileDetail
 import org.kohsuke.github.GHPullRequestReviewEvent
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.BufferedReader
+import java.io.InputStreamReader
+import java.net.URL
 import kotlin.math.max
 import kotlin.math.min
 
@@ -158,10 +161,19 @@ class PullRequestController(private val pullRequest: GHPullRequest) {
      */
     fun getComparisonCommits(git: GitController): Pair<String, String> =
         if (pullRequest.isMerged) {
-            git.getParentCommit(pullRequest.mergeCommitSha) to pullRequest.mergeCommitSha
+            val mergeCommitSha = fetchMergeCommitByParsingHTML(number)
+            git.getParentCommit(mergeCommitSha) to mergeCommitSha
         } else {
             git.getCommonAncestorCommit(pullRequest.base.sha, pullRequest.head.sha) to pullRequest.head.sha
         }
+
+    private fun fetchMergeCommitByParsingHTML(prNumber: Int): String =
+        URL("https://github.com/jruby/jruby/pull/$prNumber").openConnection().getInputStream()
+            .let(::InputStreamReader)
+            .let(::BufferedReader)
+            .lineSequence()
+            .first { it.trim().startsWith("merged commit") }
+            .substringAfter("commit/").substring(0, 40)
 
     /**
      * Return GitHub Url of the pull request file base

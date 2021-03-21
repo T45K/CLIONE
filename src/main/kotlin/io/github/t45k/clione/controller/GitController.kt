@@ -1,5 +1,6 @@
 package io.github.t45k.clione.controller
 
+import com.github.kusumotolab.sdl4j.util.CommandLine
 import io.github.t45k.clione.entity.FileChangeType
 import io.github.t45k.clione.entity.FileDiff
 import io.github.t45k.clione.util.EMPTY_NAME_PATH
@@ -95,7 +96,7 @@ class GitController(private val git: Git) : AutoCloseable {
         Observable.just(repositoryPath)
             .doOnSubscribe { logger.info("[START]\tdelete ${git.repository.directory.parentFile}") }
             .doOnComplete { logger.info("[END]\tdelete ${git.repository.directory.parentFile}") }
-            .subscribe{it.deleteRecursively()}
+            .subscribe { it.deleteRecursively() }
     }
 
     fun getProjectPath(): Path = repositoryPath
@@ -104,9 +105,10 @@ class GitController(private val git: Git) : AutoCloseable {
      * Same operation as "git checkout hash"
      */
     fun checkout(commitHash: String) {
-        git.checkout()
+        /*git.checkout()
             .setName(commitHash)
-            .call()
+            .call()*/
+        CommandLine().execute(repositoryPath.toFile(), "git", "checkout", commitHash)
     }
 
     /**

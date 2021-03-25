@@ -17,6 +17,10 @@ CLIONE execution is triggered by Pull Requests, and it notifies inconsistently m
 3. Edit `config.toml` by refering [Settings](#Settings)
 4. Configuration is over. Let's create a pull request.
 
+## NOTICE!
+Due to my graduation, CLIONE is currently unavailable as a GitHub bot.
+If you are interested in CLIONE, prepare your own server and deploy CLIONE on yourself.
+
 ## Settings
 `simirality` is integer type, and others are string type.
 Simple example is [here](./.clione/config.toml).
@@ -56,6 +60,10 @@ CLIONEはコードクローン修正支援ボットです．<br>
 2. CLIONEを利用したいプロジェクトに内に`.clione/config.toml`ファイルを作成してください．
 3. [設定](#設定)を参考に`config.toml`を編集してください．
 4. 設定は以上です．あとはプルリクエストを作成してみてください．
+
+## 注意
+開発者の卒業に伴い，現在上記の方法でCLIONEを使うことはできません．
+CLIONEを利用したい場合，下記の「サーバとして使う」を参考にして自身のサーバを用意してください．
 
 ## 設定
 `similarity`は整数型，それ以外は文字列型で記述してください．<br>
